@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Modelli AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .filter-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .filter-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        /* Nuovi stili per filtri a checkbox */
+        #filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .company-group {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 8px 10px;
+            background: #fafafa;
+        }
+        .company-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .model-list {
+            max-height: 180px;
+            overflow: auto;
+            padding-left: 2px;
+        }
+        .model-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 2px 0;
+            font-size: 0.95em;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap; /* Permette ai tab di andare a capo su schermi piccoli */
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            margin-right: 5px;
+            margin-bottom: 5px; /* Spazio se vanno a capo */
+            border-bottom: 3px solid transparent;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            white-space: nowrap; /* Evita che il testo del tab vada a capo */
+        }
+
+        .tab:hover {
+            background-color: #f0f0f0;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid #3498db;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .tab-content {
+            display: none; /* Nascosto di default */
+            padding: 15px 0;
+        }
+
+        .tab-content.active {
+            display: block; /* Mostra il contenuto attivo */
+        }
+
+        /* Responsive canvas container */
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 60vh; /* Altezza relativa alla viewport */
+            width: 95%;   /* Larghezza relativa al container */
+            max-width: 1000px; /* Limite massimo per schermi grandi */
+            min-height: 350px; /* Altezza minima per evitare collassi */
+        }
+
+        /* Legenda personalizzata (opzionale) */
+        .custom-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 15px;
+            padding: 0;
+            list-style: none;
+        }
+        .custom-legend li {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        .custom-legend span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            border-radius: 2px; /* Quadrato arrotondato */
+        }
+
+
+        /* Media query per schermi più piccoli */
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 50vh;
+                min-height: 300px;
+            }
+            .tab {
+                font-size: 0.9em;
+                padding: 8px 10px;
+            }
+        }
+         @media (max-width: 480px) {
+             .tab {
+                 font-size: 0.8em;
+             }
+             .chart-container {
+                 min-height: 250px;
+             }
+         }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Analisi Performance Modelli AI</h1>
+
+        <!-- Sezione Filtri -->
+        <div class="filter-section">
+            <label>Filtra per Azienda e Modello:</label>
+            <div id="filters">
+                <!-- Gruppi aziende e checkbox modelli verranno generati da JS -->
+            </div>
+        </div>
+
+        <!-- Sezione Caricamento Dati Manuale -->
+        <div id="manualUploadSection" style="display: none; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+            <p style="color: #e74c3c; font-weight: bold;">Errore nel caricamento dati automatico. Carica il file 'dati.csv' manualmente:</p>
+            <input type="file" id="csvFileInput" accept=".csv" style="margin-bottom: 10px;">
+            <button id="uploadCsvButton">Carica CSV</button>
+        </div>
+
+        <!-- Sezione Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-target="#contentMatching">Matching (True/False)</button>
+            <button class="tab" data-target="#contentPotenzialeCosto">Potenziale vs Costo</button>
+            <button class="tab" data-target="#contentSimilarita">Similarità Media</button>
+        </div>
+
+        <!-- Contenuto Tabs (Grafici) -->
+        <div id="contentMatching" class="tab-content active">
+            <h2>Matching (True/False) - Ordinato per True Decrescente</h2>
+            <div class="chart-container">
+                <canvas id="chartMatching"></canvas>
+            </div>
+        </div>
+
+        <div id="contentPotenzialeCosto" class="tab-content">
+            <h2>Potenziale vs Costo</h2>
+             <div class="chart-container">
+                <canvas id="chartPotenzialeCosto"></canvas>
+             </div>
+             <!-- Legenda Personalizzata per colori scatter -->
+             <ul id="scatterLegend" class="custom-legend"></ul>
+        </div>
+
+        <div id="contentSimilarita" class="tab-content">
+            <h2>Similarità Semantica Media - Ordinata Decrescente</h2>
+             <div class="chart-container">
+                <canvas id="chartSimilarita"></canvas>
+             </div>
+        </div>
+
+    </div><!-- /container -->
+
+    <!-- Dataset JSON (non più utilizzato, lasciato per riferimento) -->
+    <script type="application/json" id="modelData">[]</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elementi DOM ---
+            const filtersContainer = document.getElementById('filters');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const ctxMatching = document.getElementById('chartMatching').getContext('2d');
+            const ctxPotenzialeCosto = document.getElementById('chartPotenzialeCosto').getContext('2d');
+            const ctxSimilarita = document.getElementById('chartSimilarita').getContext('2d');
+            const scatterLegendContainer = document.getElementById('scatterLegend'); // Container legenda custom
+            const manualUploadSection = document.getElementById('manualUploadSection');
+            const csvFileInput = document.getElementById('csvFileInput');
+            const uploadCsvButton = document.getElementById('uploadCsvButton');
+
+            // --- Dati e Stato ---
+            let allData = [];
+            let chartInstances = {}; // Per tenere traccia dei grafici attivi e distruggerli
+
+            // --- Colori per aziende ---
+            const companyColorMap = {
+                'OpenAI': '#3498db',
+                'Anthropic': '#e67e22',
+                'Mistral AI': '#2ecc71',
+                'Meta': '#9b59b6',
+                'Google': '#e74c3c',
+                'DeepSeek': '#1abc9c',
+                'Alibaba': '#f1c40f',
+                'Microsoft': '#8e44ad',
+                'Hidden': '#7f8c8d',
+                'Other': '#000000'
+            };
+
+            function getCompany(item) {
+                return (item.azienda && String(item.azienda).trim()) || 'Other';
+            }
+
+            // --- Inizializzazione ---
+            try {
+                loadData();
+                uploadCsvButton.addEventListener('click', handleManualUpload);
+            } catch (error) {
+                console.error("Errore durante l'inizializzazione:", error);
+                alert("Impossibile caricare i dati o inizializzare la dashboard.");
+            }
+
+            // --- Caricamento dati ---
+            async function loadData() {
+                try {
+                    const response = await fetch('dati.csv');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const csvText = await response.text();
+                    parseCsvData(csvText);
+                } catch (error) {
+                    console.warn("Impossibile caricare dati.csv automaticamente. Abilitazione caricamento manuale.", error);
+                    manualUploadSection.style.display = 'block';
+                }
+            }
+
+            function handleManualUpload() {
+                const file = csvFileInput.files[0];
+                if (file) {
+                    Papa.parse(file, {
+                        header: true,
+                        dynamicTyping: true,
+                        complete: function(results) {
+                            if (results.errors.length) {
+                                console.error("Error parsing CSV:", results.errors);
+                                alert("Errore durante il parsing del file CSV. Controlla il formato.");
+                                return;
+                            }
+                            allData = results.data.filter(row => Object.values(row).some(x => x !== null && x !== '')); // Filtra righe vuote
+                            if (allData.length === 0) {
+                                alert("Il file CSV caricato è vuoto o non contiene dati validi.");
+                                return;
+                            }
+                            manualUploadSection.style.display = 'none';
+                            initializeDashboard();
+                        },
+                        error: function(err) {
+                            console.error("Errore nella lettura del file:", err);
+                            alert("Errore nella lettura del file.");
+                        }
+                    });
+                } else {
+                    alert("Seleziona un file CSV prima di caricare.");
+                }
+            }
+
+            function parseCsvData(csvText) {
+                Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        if (results.errors.length) {
+                            console.error("Error parsing CSV:", results.errors);
+                            alert("Errore durante il parsing del file CSV. Controlla il formato.");
+                            return;
+                        }
+                        allData = results.data.filter(row => Object.values(row).some(x => x !== null && x !== ''));
+                        if (allData.length === 0) {
+                            alert("Il file CSV è vuoto o non contiene dati validi.");
+                            manualUploadSection.style.display = 'block';
+                            return;
+                        }
+                        initializeDashboard();
+                    },
+                    error: function(err) {
+                        console.error("Errore nel parsing CSV:", err);
+                        alert("Errore nel parsing del CSV caricato automaticamente.");
+                        manualUploadSection.style.display = 'block';
+                    }
+                });
+            }
+
+            function initializeDashboard() {
+                buildFilters();
+                setupTabs();
+                buildCharts(); // Costruisci i grafici iniziali
+                // Rende reattivo: ricostruisci i grafici ad ogni cambio checkbox
+                filtersContainer.addEventListener('change', () => {
+                    buildCharts();
+                });
+            }
+
+            // --- Costruzione filtri a checkbox ---
+            function buildFilters() {
+                filtersContainer.innerHTML = '';
+                const byCompany = groupBy(allData, item => getCompany(item));
+                const companyNames = Object.keys(byCompany).sort((a,b) => a.localeCompare(b));
+
+                companyNames.forEach(company => {
+                    const models = byCompany[company].map(d => d.modello).sort((a,b) => a.localeCompare(b));
+
+                    const group = document.createElement('div');
+                    group.className = 'company-group';
+
+                    const header = document.createElement('div');
+                    header.className = 'company-header';
+                    const headerLeft = document.createElement('label');
+                    const companyCheckbox = document.createElement('input');
+                    companyCheckbox.type = 'checkbox';
+                    companyCheckbox.className = 'company-checkbox';
+                    companyCheckbox.dataset.company = company;
+                    companyCheckbox.checked = true; // selezionato di default
+                    headerLeft.appendChild(companyCheckbox);
+                    const headerText = document.createTextNode(' ' + company);
+                    headerLeft.appendChild(headerText);
+                    header.appendChild(headerLeft);
+                    group.appendChild(header);
+
+                    const list = document.createElement('div');
+                    list.className = 'model-list';
+                    models.forEach(model => {
+                        const item = document.createElement('label');
+                        item.className = 'model-item';
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.className = 'model-checkbox';
+                        cb.value = model;
+                        cb.dataset.company = company;
+                        cb.checked = true; // selezionato di default
+                        item.appendChild(cb);
+                        item.appendChild(document.createTextNode(model));
+                        list.appendChild(item);
+                    });
+                    group.appendChild(list);
+
+                    // Bulk: spunta azienda -> spunta tutti i modelli
+                    companyCheckbox.addEventListener('change', (e) => {
+                        const checked = e.target.checked;
+                        list.querySelectorAll('input.model-checkbox').forEach(cb => {
+                            cb.checked = checked;
+                        });
+                        // trigger change per ricostruire grafici
+                        filtersContainer.dispatchEvent(new Event('change'));
+                    });
+
+                    // Mantieni stato indeterminate per header
+                    list.addEventListener('change', () => {
+                        const cbs = Array.from(list.querySelectorAll('input.model-checkbox'));
+                        const numChecked = cbs.filter(cb => cb.checked).length;
+                        companyCheckbox.indeterminate = numChecked > 0 && numChecked < cbs.length;
+                        companyCheckbox.checked = numChecked === cbs.length;
+                    });
+
+                    filtersContainer.appendChild(group);
+                });
+            }
+
+            function groupBy(array, keyGetter) {
+                const map = {};
+                array.forEach((item) => {
+                    const key = keyGetter(item) || 'Other';
+                    if (!map[key]) map[key] = [];
+                    map[key].push(item);
+                });
+                return map;
+            }
+
+            function getSelectedModels() {
+                return Array.from(document.querySelectorAll('input.model-checkbox:checked')).map(cb => cb.value);
+            }
+
+            function destroyCharts() {
+                Object.keys(chartInstances).forEach(key => {
+                    if (chartInstances[key]) {
+                        chartInstances[key].destroy();
+                        chartInstances[key] = null;
+                    }
+                });
+                 // Pulisci anche la legenda custom
+                scatterLegendContainer.innerHTML = '';
+            }
+
+            function buildCharts() {
+                destroyCharts();
+                const selectedModels = getSelectedModels();
+                const filteredData = allData.filter(item => selectedModels.includes(item.modello));
+                if (filteredData.length === 0) {
+                    console.warn('Nessun modello selezionato o dati filtrati vuoti.');
+                    return;
+                }
+                buildMatchingChart(filteredData);
+                buildPotenzialeCostoChart(filteredData);
+                buildSimilaritaChart(filteredData);
+            }
+
+            // --- Grafici ---
+            function buildMatchingChart(data) {
+                const sortedData = [...data].sort((a, b) => b.true - a.true);
+                const labels = sortedData.map(item => item.modello);
+                const trueData = sortedData.map(item => item.true);
+                const falseData = sortedData.map(item => item.false);
+
+                chartInstances.matching = new Chart(ctxMatching, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'True', data: trueData, backgroundColor: 'rgba(75, 192, 192, 0.7)', borderColor: 'rgba(75, 192, 192, 1)', borderWidth: 1 },
+                            { label: 'False', data: falseData, backgroundColor: 'rgba(255, 99, 132, 0.7)', borderColor: 'rgba(255, 99, 132, 1)', borderWidth: 1 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { title: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                        scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Numero Query' } } },
+                        animation: { duration: 300 }
+                    }
+                });
+            }
+
+            function buildPotenzialeCostoChart(data) {
+                const scatterData = [];
+                const pointColors = [];
+                const companiesPresent = new Set();
+
+                data.forEach(item => {
+                    const company = getCompany(item);
+                    const color = companyColorMap[company] || companyColorMap['Other'];
+                    scatterData.push({
+                        x: item.potenziale,
+                        y: item.costo_euro,
+                        label: item.modello,
+                        company: company
+                    });
+                    pointColors.push(color);
+                    companiesPresent.add(company);
+                });
+
+                buildCustomLegend(companiesPresent);
+
+                chartInstances.potenzialeCosto = new Chart(ctxPotenzialeCosto, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Modelli',
+                            data: scatterData,
+                            pointBackgroundColor: pointColors,
+                            pointBorderColor: pointColors.map(c => adjustColor(c, -20)),
+                            pointRadius: 7,
+                            pointHoverRadius: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: false },
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const item = context.raw;
+                                        return `${item.label} [${item.company}]: (Pot: ${item.x}, Costo: ${Number(item.y).toFixed(2)} €)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Potenziale' }, grid: { color: 'rgba(0,0,0,0.05)'} },
+                            y: { beginAtZero: true, title: { display: true, text: 'Costo (€)' }, grid: { color: 'rgba(0,0,0,0.05)'} }
+                        },
+                        animation: { duration: 300 }
+                    }
+                });
+            }
+
+            function buildSimilaritaChart(data) {
+                const sortedData = [...data].sort((a, b) => b.similarita_media - a.similarita_media);
+                const labels = sortedData.map(item => item.modello);
+                const similaritaData = sortedData.map(item => item.similarita_media);
+
+                chartInstances.similarita = new Chart(ctxSimilarita, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Similarità Media (%)', data: similaritaData,
+                            backgroundColor: 'rgba(255, 159, 64, 0.7)', borderColor: 'rgba(255, 159, 64, 1)', borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                        plugins: { title: { display: false }, legend: { display: false } },
+                        scales: { x: { beginAtZero: true, title: { display: true, text: 'Similarità Media (%)' } }, y: { grid: { display: false } } },
+                        animation: { duration: 300 }
+                    }
+                });
+            }
+
+            // --- Legenda custom (per aziende) ---
+            function buildCustomLegend(companies) {
+                scatterLegendContainer.innerHTML = '';
+                const sortedCompanies = Array.from(companies).sort();
+                sortedCompanies.forEach(company => {
+                    const color = companyColorMap[company] || companyColorMap['Other'];
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span style="background-color: ${color};"></span> ${company}`;
+                    scatterLegendContainer.appendChild(li);
+                });
+            }
+
+            // --- Helper colore ---
+            function adjustColor(color, amount) {
+                return '#' + color.replace(/^#/, '').replace(/../g, c => ('0'+Math.min(255, Math.max(0, parseInt(c, 16) + amount)).toString(16)).substr(-2));
+            }
+
+            // Tabs
+            function setupTabs() {
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(tc => tc.classList.remove('active'));
+                        tab.classList.add('active');
+                        const targetContent = document.querySelector(tab.dataset.target);
+                        if (targetContent) {
+                            targetContent.classList.add('active');
+                        }
+                        Object.values(chartInstances).forEach(chart => {
+                            if (chart && typeof chart.resize === 'function') {
+                                setTimeout(() => chart.resize(), 0);
+                            }
+                        });
+                    });
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
