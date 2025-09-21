@@ -47,12 +47,16 @@ L'analisi deriva dal progetto "Clusterizza e misura" (`https://github.com/Search
 
 La dashboard si aspetta colonne con questi nomi:
 
-- `azienda` — nome del vendor/azienda del modello
 - `modello` — nome del modello
-- `true`, `false` — conteggi per il grafico Matching
-- `potenziale` — valore numerico per l'asse X dello scatter
-- `costo_euro` — valore numerico per l'asse Y dello scatter
-- `similarita_media` — percentuale (0–100) per il grafico di similarità
+- `azienda` — vendor/azienda del modello
+- `costo_euro` — costo in euro (usato come asse Y nello scatter)
+- `true` — conteggio risposte corrette/positive
+- `false` — conteggio risposte errate/negative
+- `total_query` — numero totale di query
+- `percent_true` — percentuale di `true` su `total_query`
+- `similarita_media` — similarità media (0–100)
+- `deviazione_std` — deviazione standard della similarità
+- `potenziale` — punteggio potenziale (usato come asse X nello scatter)
 
 Nota: eventuali colonne extra vengono ignorate. Righe completamente vuote vengono scartate.
 
