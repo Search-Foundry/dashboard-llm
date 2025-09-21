@@ -7,28 +7,32 @@ L'analisi deriva dal progetto "Clusterizza e misura" (`https://github.com/Search
 ## Requisiti
 
 - Qualsiasi browser moderno (Chrome/Edge/Firefox/Safari)
-- Un semplice server statico locale per servire i file (necessario perché la pagina carica `dati.csv` via `fetch`)
+- Opzionale: un semplice server statico locale. È utile solo se vuoi l'auto-caricamento di `dati.csv` via `fetch`.
 
 ## Quick Start
 
 1) Clona o scarica la repo.
 
-2) Avvia un server statico nella cartella del progetto.
+2) Avvio rapido senza server (consigliato se vuoi solo visualizzare un CSV locale):
 
-   - Con Python 3:
+   - Apri il file `dashboard-gpt5.html` direttamente nel browser (doppio click).
+   - Clicca su "Carica CSV" e seleziona `dati.csv` (o un tuo CSV con lo stesso schema).
 
-     ```bash
-     cd dashboard_interattiva
-     python3 -m http.server 8000
-     ```
+   Oppure, se preferisci l'auto-caricamento di `dati.csv`:
 
-   - Oppure usa un'estensione tipo “Live Server” di VS Code.
+   - Avvia un server statico nella cartella del progetto.
+     - Con Python 3:
 
-3) Apri nel browser:
+       ```bash
+       cd dashboard_interattiva
+       python3 -m http.server 8000
+       ```
 
-   - `http://localhost:8000/dashboard-gpt5.html`
+     - Oppure usa un'estensione tipo “Live Server” di VS Code.
 
-4) La pagina carica automaticamente `dati.csv` e mostra tre grafici con filtri per azienda/modello:
+   - Apri `http://localhost:8000/dashboard-gpt5.html`
+
+3) La pagina mostra tre grafici con filtri per azienda/modello:
 
    - Matching (True/False) — barre orizzontali impilate
    - Potenziale vs Costo — scatter con legenda per azienda
@@ -37,7 +41,7 @@ L'analisi deriva dal progetto "Clusterizza e misura" (`https://github.com/Search
 ## Aggiornare i dati
 
 - Sostituisci il file `dati.csv` mantenendo l'intestazione di colonne attesa dalla pagina.
-- Se l'auto-caricamento fallisce (es. per CORS/server), la pagina offre un caricamento manuale del CSV.
+- Se l'auto-caricamento fallisce o non usi un server, usa il caricamento manuale: pulsante "Carica CSV".
 
 ## Formato dati (minimo indispensabile)
 
@@ -54,10 +58,9 @@ Nota: eventuali colonne extra vengono ignorate. Righe completamente vuote vengon
 
 ## Troubleshooting veloce
 
-- Vedi pagine vuote o errori di `fetch` con `file://`? Avvia un server locale come indicato sopra.
+- Apri via `file://` e non vedi dati? Usa "Carica CSV" per selezionare il file.
+- Vuoi evitare di selezionare manualmente il file ad ogni avvio? Usa un server locale come indicato sopra.
 - Etichette che non si vedono? I grafici gestiscono l'altezza dinamicamente e non saltano più i tick; assicurati che il container non sia limitato da CSS esterno.
-
-## ✍️ Crediti
 
 ## ✍️ Crediti
 
