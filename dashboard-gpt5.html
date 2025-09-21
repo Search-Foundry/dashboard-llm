@@ -459,6 +459,13 @@
                 const trueData = sortedData.map(item => item.true);
                 const falseData = sortedData.map(item => item.false);
 
+                // Altezza dinamica per includere tutte le etichette quando mostriamo barre orizzontali
+                const barsCount = Math.max(labels.length, 1);
+                const pixelsPerBar = 28;
+                const minHeightPx = 350;
+                const targetHeight = Math.max(minHeightPx, barsCount * pixelsPerBar);
+                ctxMatching.canvas.parentNode.style.height = `${targetHeight}px`;
+
                 chartInstances.matching = new Chart(ctxMatching, {
                     type: 'bar',
                     data: {
@@ -469,9 +476,25 @@
                         ]
                     },
                     options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { title: { display: false }, tooltip: { mode: 'index', intersect: false } },
-                        scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Numero Query' } } },
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            title: { display: false },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                            x: {
+                                stacked: true,
+                                beginAtZero: true,
+                                title: { display: true, text: 'Numero Query' }
+                            },
+                            y: {
+                                stacked: true,
+                                grid: { display: false },
+                                ticks: { autoSkip: false, font: { size: 11 } }
+                            }
+                        },
                         animation: { duration: 300 }
                     }
                 });
@@ -538,6 +561,14 @@
                 const labels = sortedData.map(item => item.modello);
                 const similaritaData = sortedData.map(item => item.similarita_media);
 
+                // Ridimensiona dinamicamente l'altezza del container per evitare il taglio delle etichette
+                // Altezza per barra (in px) + altezza minima per schermi piccoli
+                const barsCount = Math.max(labels.length, 1);
+                const pixelsPerBar = 28; // regola se vuoi più/meno spazio verticale per etichetta
+                const minHeightPx = 350;
+                const targetHeight = Math.max(minHeightPx, barsCount * pixelsPerBar);
+                ctxSimilarita.canvas.parentNode.style.height = `${targetHeight}px`;
+
                 chartInstances.similarita = new Chart(ctxSimilarita, {
                     type: 'bar',
                     data: {
@@ -550,7 +581,16 @@
                     options: {
                         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
                         plugins: { title: { display: false }, legend: { display: false } },
-                        scales: { x: { beginAtZero: true, title: { display: true, text: 'Similarità Media (%)' } }, y: { grid: { display: false } } },
+                        scales: {
+                            x: { beginAtZero: true, title: { display: true, text: 'Similarità Media (%)' } },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    autoSkip: false, // mostra tutte le etichette
+                                    font: { size: 11 }
+                                }
+                            }
+                        },
                         animation: { duration: 300 }
                     }
                 });
