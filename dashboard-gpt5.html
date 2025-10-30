@@ -19,37 +19,65 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 20px auto;
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0; /* Permette al contenuto di restringersi */
         }
 
         .filter-section {
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            width: 320px;
+            min-width: 280px;
+            flex-shrink: 0;
+            background-color: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .filter-section label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-weight: bold;
+            font-size: 1.05em;
+            color: #2c3e50;
         }
 
         /* Nuovi stili per filtri a checkbox */
         #filters {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         .company-group {
             border: 1px solid #e5e7eb;
             border-radius: 6px;
             padding: 8px 10px;
-            background: #fafafa;
+            background: #ffffff;
+            margin-bottom: 0;
+            transition: all 0.2s ease;
+        }
+        .company-group:hover {
+            border-color: #3498db;
+            box-shadow: 0 1px 3px rgba(52, 152, 219, 0.1);
+        }
+        .company-group.collapsed .model-list {
+            display: none;
         }
         .company-header {
             display: flex;
@@ -58,6 +86,24 @@
             margin-bottom: 6px;
             font-weight: 600;
             gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .company-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+        .collapse-toggle {
+            font-size: 0.85em;
+            color: #666;
+            transition: transform 0.2s ease;
+            width: 16px;
+            text-align: center;
+        }
+        .company-group.collapsed .collapse-toggle {
+            transform: rotate(-90deg);
         }
         .highlight-toggle {
             border: 1px solid #3498db;
@@ -77,9 +123,41 @@
             color: #fff;
         }
         .model-list {
-            max-height: 180px;
-            overflow: auto;
+            max-height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
             padding-left: 2px;
+            margin-top: 4px;
+        }
+        /* Scrollbar personalizzata per model-list */
+        .model-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .model-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        .model-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        .model-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Scrollbar personalizzata per filter-section */
+        .filter-section::-webkit-scrollbar {
+            width: 8px;
+        }
+        .filter-section::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .filter-section::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        .filter-section::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
         .model-item {
             display: flex;
@@ -153,6 +231,20 @@
             margin-right: 15px;
             margin-bottom: 5px;
             font-size: 0.9em;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .custom-legend li:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.05);
+        }
+        .custom-legend li.active {
+            background-color: #e3f2fd;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
         }
         .custom-legend span {
             display: inline-block;
@@ -160,6 +252,11 @@
             height: 12px;
             margin-right: 5px;
             border-radius: 2px; /* Quadrato arrotondato */
+            transition: transform 0.2s ease;
+        }
+        .custom-legend li.active span {
+            transform: scale(1.2);
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
         }
         .chart-note {
             margin-top: 12px;
@@ -170,6 +267,19 @@
 
 
         /* Media query per schermi più piccoli */
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            .filter-section {
+                width: 100%;
+                position: static;
+                max-height: 400px;
+            }
+            .main-content {
+                width: 100%;
+            }
+        }
         @media (max-width: 768px) {
             .chart-container {
                 height: 50vh;
@@ -179,6 +289,9 @@
                 font-size: 0.9em;
                 padding: 8px 10px;
             }
+            .filter-section {
+                max-height: 350px;
+            }
         }
          @media (max-width: 480px) {
              .tab {
@@ -187,14 +300,15 @@
              .chart-container {
                  min-height: 250px;
              }
+             .filter-section {
+                 max-height: 300px;
+             }
          }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Analisi Performance Modelli AI</h1>
-
         <!-- Sezione Filtri -->
         <div class="filter-section">
             <label>Filtra per Azienda e Modello:</label>
@@ -203,42 +317,47 @@
             </div>
         </div>
 
-        <!-- Sezione Caricamento Dati Manuale -->
-        <div id="manualUploadSection" style="display: none; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
-            <p style="color: #e74c3c; font-weight: bold;">Errore nel caricamento dati automatico. Seleziona il file 'dati.csv' per avviare il caricamento immediatamente:</p>
-            <input type="file" id="csvFileInput" accept=".csv">
-        </div>
+        <!-- Contenuto Principale -->
+        <div class="main-content">
+            <h1>Analisi Performance Modelli AI</h1>
 
-        <!-- Sezione Tabs -->
-        <div class="tabs">
-            <button class="tab active" data-target="#contentMatching">Matching (True/False)</button>
-            <button class="tab" data-target="#contentPotenzialeCosto">Potenziale vs Costo</button>
-            <button class="tab" data-target="#contentSimilarita">Similarità Media</button>
-        </div>
-
-        <!-- Contenuto Tabs (Grafici) -->
-        <div id="contentMatching" class="tab-content active">
-            <h2>Matching (True/False) - Ordinato per True Decrescente</h2>
-            <div class="chart-container">
-                <canvas id="chartMatching"></canvas>
+            <!-- Sezione Caricamento Dati Manuale -->
+            <div id="manualUploadSection" style="display: none; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+                <p style="color: #e74c3c; font-weight: bold;">Errore nel caricamento dati automatico. Seleziona il file 'dati.csv' per avviare il caricamento immediatamente:</p>
+                <input type="file" id="csvFileInput" accept=".csv">
             </div>
-        </div>
 
-        <div id="contentPotenzialeCosto" class="tab-content">
-            <h2>Potenziale vs Costo</h2>
-             <div class="chart-container">
-                <canvas id="chartPotenzialeCosto"></canvas>
-             </div>
-             <!-- Legenda Personalizzata per colori scatter -->
-             <ul id="scatterLegend" class="custom-legend"></ul>
-             <p class="chart-note">I marker più grandi indicano modelli con accuracy (percentuale di true) ≥ 90%.</p>
-        </div>
+            <!-- Sezione Tabs -->
+            <div class="tabs">
+                <button class="tab active" data-target="#contentMatching">Matching (True/False)</button>
+                <button class="tab" data-target="#contentPotenzialeCosto">Potenziale vs Costo</button>
+                <button class="tab" data-target="#contentSimilarita">Similarità Media</button>
+            </div>
 
-        <div id="contentSimilarita" class="tab-content">
-            <h2>Similarità Semantica Media - Ordinata Decrescente</h2>
-             <div class="chart-container">
-                <canvas id="chartSimilarita"></canvas>
-             </div>
+            <!-- Contenuto Tabs (Grafici) -->
+            <div id="contentMatching" class="tab-content active">
+                <h2>Matching (True/False) - Ordinato per True Decrescente</h2>
+                <div class="chart-container">
+                    <canvas id="chartMatching"></canvas>
+                </div>
+            </div>
+
+            <div id="contentPotenzialeCosto" class="tab-content">
+                <h2>Potenziale vs Costo</h2>
+                 <div class="chart-container">
+                    <canvas id="chartPotenzialeCosto"></canvas>
+                 </div>
+                 <!-- Legenda Personalizzata per colori scatter -->
+                 <ul id="scatterLegend" class="custom-legend"></ul>
+                 <p class="chart-note">I marker più grandi indicano modelli con accuracy (percentuale di true) ≥ 90%.</p>
+            </div>
+
+            <div id="contentSimilarita" class="tab-content">
+                <h2>Similarità Semantica Media - Ordinata Decrescente</h2>
+                 <div class="chart-container">
+                    <canvas id="chartSimilarita"></canvas>
+                 </div>
+            </div>
         </div>
 
     </div><!-- /container -->
@@ -449,15 +568,27 @@
 
                     const header = document.createElement('div');
                     header.className = 'company-header';
-                    const headerLeft = document.createElement('label');
+                    
+                    const headerLeft = document.createElement('div');
+                    headerLeft.className = 'company-header-left';
+                    
+                    const collapseToggle = document.createElement('span');
+                    collapseToggle.className = 'collapse-toggle';
+                    collapseToggle.textContent = '▾';
+                    collapseToggle.setAttribute('aria-label', 'Espandi/Collassa');
+                    
+                    const headerLabel = document.createElement('label');
                     const companyCheckbox = document.createElement('input');
                     companyCheckbox.type = 'checkbox';
                     companyCheckbox.className = 'company-checkbox';
                     companyCheckbox.dataset.company = company;
                     companyCheckbox.checked = true; // selezionato di default
-                    headerLeft.appendChild(companyCheckbox);
+                    headerLabel.appendChild(companyCheckbox);
                     const headerText = document.createTextNode(' ' + company);
-                    headerLeft.appendChild(headerText);
+                    headerLabel.appendChild(headerText);
+                    
+                    headerLeft.appendChild(collapseToggle);
+                    headerLeft.appendChild(headerLabel);
                     header.appendChild(headerLeft);
 
                     const highlightButton = document.createElement('button');
@@ -465,9 +596,22 @@
                     highlightButton.className = 'highlight-toggle';
                     highlightButton.dataset.company = company;
                     highlightButton.textContent = 'Highlight';
-                    highlightButton.addEventListener('click', () => toggleCompanyHighlight(company, highlightButton));
+                    highlightButton.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Previene il toggle del gruppo quando si clicca Highlight
+                        toggleCompanyHighlight(company, highlightButton);
+                    });
                     updateHighlightButtonState(highlightButton, company);
                     header.appendChild(highlightButton);
+                    
+                    // Toggle collasso gruppo
+                    header.addEventListener('click', (e) => {
+                        // Non toggle se il click è sul checkbox o sul pulsante Highlight
+                        if (e.target === companyCheckbox || e.target === highlightButton || e.target.closest('.highlight-toggle')) {
+                            return;
+                        }
+                        group.classList.toggle('collapsed');
+                    });
+                    
                     group.appendChild(header);
 
                     const list = document.createElement('div');
@@ -722,8 +866,37 @@
                 sortedCompanies.forEach(company => {
                     const color = companyColorMap[company] || companyColorMap['Other'];
                     const li = document.createElement('li');
+                    li.dataset.company = company;
                     li.innerHTML = `<span style="background-color: ${color};"></span> ${company}`;
+                    
+                    // Rendi cliccabile per toggle highlight
+                    li.addEventListener('click', () => {
+                        // Trova il pulsante Highlight corrispondente nella sidebar
+                        const highlightButton = document.querySelector(`.highlight-toggle[data-company="${company}"]`);
+                        if (highlightButton) {
+                            toggleCompanyHighlight(company, highlightButton);
+                            updateLegendItemState(li, company);
+                        }
+                    });
+                    
+                    // Aggiorna lo stato iniziale
+                    updateLegendItemState(li, company);
+                    
                     scatterLegendContainer.appendChild(li);
+                });
+            }
+            
+            function updateLegendItemState(legendItem, company) {
+                const isActive = highlightedCompanies.has(company);
+                legendItem.classList.toggle('active', isActive);
+            }
+            
+            function refreshLegendItems() {
+                document.querySelectorAll('#scatterLegend li').forEach(li => {
+                    const company = li.dataset.company;
+                    if (company) {
+                        updateLegendItemState(li, company);
+                    }
                 });
             }
 
@@ -739,6 +912,7 @@
                     highlightedCompanies.add(company);
                 }
                 updateHighlightButtonState(button, company);
+                refreshLegendItems(); // Aggiorna anche la legenda
                 ensureHighlightTimer();
             }
 
@@ -759,6 +933,7 @@
                 highlightedCompanies.clear();
                 stopHighlightTimer();
                 refreshHighlightButtons();
+                refreshLegendItems(); // Aggiorna anche la legenda
                 updateScatterHighlight();
             }
 
