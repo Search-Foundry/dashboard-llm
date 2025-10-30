@@ -57,6 +57,24 @@
             justify-content: space-between;
             margin-bottom: 6px;
             font-weight: 600;
+            gap: 10px;
+        }
+        .highlight-toggle {
+            border: 1px solid #3498db;
+            background: #ffffff;
+            color: #3498db;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .highlight-toggle:hover {
+            background: #ecf5fc;
+        }
+        .highlight-toggle.active {
+            background: #3498db;
+            color: #fff;
         }
         .model-list {
             max-height: 180px;
@@ -143,6 +161,12 @@
             margin-right: 5px;
             border-radius: 2px; /* Quadrato arrotondato */
         }
+        .chart-note {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #555;
+        }
 
 
         /* Media query per schermi più piccoli */
@@ -181,9 +205,8 @@
 
         <!-- Sezione Caricamento Dati Manuale -->
         <div id="manualUploadSection" style="display: none; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
-            <p style="color: #e74c3c; font-weight: bold;">Errore nel caricamento dati automatico. Carica il file 'dati.csv' manualmente:</p>
-            <input type="file" id="csvFileInput" accept=".csv" style="margin-bottom: 10px;">
-            <button id="uploadCsvButton">Carica CSV</button>
+            <p style="color: #e74c3c; font-weight: bold;">Errore nel caricamento dati automatico. Seleziona il file 'dati.csv' per avviare il caricamento immediatamente:</p>
+            <input type="file" id="csvFileInput" accept=".csv">
         </div>
 
         <!-- Sezione Tabs -->
@@ -208,6 +231,7 @@
              </div>
              <!-- Legenda Personalizzata per colori scatter -->
              <ul id="scatterLegend" class="custom-legend"></ul>
+             <p class="chart-note">I marker più grandi indicano modelli con accuracy (percentuale di true) ≥ 90%.</p>
         </div>
 
         <div id="contentSimilarita" class="tab-content">
@@ -235,11 +259,14 @@
             const scatterLegendContainer = document.getElementById('scatterLegend'); // Container legenda custom
             const manualUploadSection = document.getElementById('manualUploadSection');
             const csvFileInput = document.getElementById('csvFileInput');
-            const uploadCsvButton = document.getElementById('uploadCsvButton');
 
             // --- Dati e Stato ---
             let allData = [];
             let chartInstances = {}; // Per tenere traccia dei grafici attivi e distruggerli
+            const highlightedCompanies = new Set(); // Aziende con highlight attivo
+            let highlightIntervalId = null;
+            let highlightPulseState = false;
+            let filtersChangeBound = false;
 
             // --- Colori per aziende ---
             const companyColorMap = {
@@ -255,14 +282,69 @@
                 'Other': '#000000'
             };
 
+            const ACCURACY_THRESHOLD = 90;
+            const POTENZIALE_THRESHOLD = 29250;
+            const POTENZIALE_THRESHOLD_LABEL = POTENZIALE_THRESHOLD.toLocaleString('it-IT');
+            const potenzialeThresholdPlugin = {
+                id: 'potenzialeThresholdLine',
+                afterDatasetsDraw(chart, args, pluginOptions) {
+                    const options = pluginOptions || chart.options.plugins?.potenzialeThresholdLine;
+                    if (!options) return;
+                    const threshold = typeof options.value === 'number' ? options.value : POTENZIALE_THRESHOLD;
+                    const xScale = chart.scales?.x;
+                    if (!xScale || !chart.chartArea) return;
+                    const xPixel = xScale.getPixelForValue(threshold);
+                    if (!Number.isFinite(xPixel)) return;
+                    const { top, bottom, left, right } = chart.chartArea;
+                    if (xPixel < left || xPixel > right) return;
+
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    ctx.strokeStyle = options.color || '#27ae60';
+                    ctx.lineWidth = options.lineWidth || 1.5;
+                    ctx.setLineDash(options.dash || [6, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(xPixel, top);
+                    ctx.lineTo(xPixel, bottom);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    const formattedThreshold = typeof threshold === 'number' && threshold.toLocaleString
+                        ? threshold.toLocaleString('it-IT')
+                        : threshold;
+                    const label = options.label || `Potenziale ≥ ${formattedThreshold}`;
+                    ctx.fillStyle = options.color || '#27ae60';
+                    ctx.font = options.font || '12px sans-serif';
+                    ctx.textBaseline = 'top';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, xPixel, top + 8);
+                    ctx.restore();
+                }
+            };
+            Chart.register(potenzialeThresholdPlugin);
+
             function getCompany(item) {
                 return (item.azienda && String(item.azienda).trim()) || 'Other';
+            }
+
+            function getAccuracyPercentage(item) {
+                if (typeof item.percent_true === 'number') {
+                    return item.percent_true;
+                }
+                const parsed = parseFloat(item.percent_true);
+                if (!Number.isNaN(parsed)) {
+                    return parsed;
+                }
+                if (typeof item.true === 'number' && typeof item.total_query === 'number' && item.total_query) {
+                    return (item.true / item.total_query) * 100;
+                }
+                return null;
             }
 
             // --- Inizializzazione ---
             try {
                 loadData();
-                uploadCsvButton.addEventListener('click', handleManualUpload);
+                csvFileInput.addEventListener('change', handleManualUpload);
             } catch (error) {
                 console.error("Errore durante l'inizializzazione:", error);
                 alert("Impossibile caricare i dati o inizializzare la dashboard.");
@@ -340,13 +422,17 @@
             }
 
             function initializeDashboard() {
+                resetHighlights();
                 buildFilters();
                 setupTabs();
                 buildCharts(); // Costruisci i grafici iniziali
                 // Rende reattivo: ricostruisci i grafici ad ogni cambio checkbox
-                filtersContainer.addEventListener('change', () => {
-                    buildCharts();
-                });
+                if (!filtersChangeBound) {
+                    filtersContainer.addEventListener('change', () => {
+                        buildCharts();
+                    });
+                    filtersChangeBound = true;
+                }
             }
 
             // --- Costruzione filtri a checkbox ---
@@ -373,6 +459,15 @@
                     const headerText = document.createTextNode(' ' + company);
                     headerLeft.appendChild(headerText);
                     header.appendChild(headerLeft);
+
+                    const highlightButton = document.createElement('button');
+                    highlightButton.type = 'button';
+                    highlightButton.className = 'highlight-toggle';
+                    highlightButton.dataset.company = company;
+                    highlightButton.textContent = 'Highlight';
+                    highlightButton.addEventListener('click', () => toggleCompanyHighlight(company, highlightButton));
+                    updateHighlightButtonState(highlightButton, company);
+                    header.appendChild(highlightButton);
                     group.appendChild(header);
 
                     const list = document.createElement('div');
@@ -429,6 +524,7 @@
             }
 
             function destroyCharts() {
+                stopHighlightTimer();
                 Object.keys(chartInstances).forEach(key => {
                     if (chartInstances[key]) {
                         chartInstances[key].destroy();
@@ -502,19 +598,29 @@
 
             function buildPotenzialeCostoChart(data) {
                 const scatterData = [];
-                const pointColors = [];
                 const companiesPresent = new Set();
 
                 data.forEach(item => {
                     const company = getCompany(item);
                     const color = companyColorMap[company] || companyColorMap['Other'];
+                    const accuracy = getAccuracyPercentage(item);
+                    const baseRadius = accuracy !== null && accuracy >= ACCURACY_THRESHOLD ? 9 : 7;
+                    const baseBorderWidth = accuracy !== null && accuracy >= ACCURACY_THRESHOLD ? 2.5 : 1.5;
+                    const similarityValue = typeof item.similarita_media === 'number'
+                        ? item.similarita_media
+                        : parseFloat(item.similarita_media);
                     scatterData.push({
                         x: item.potenziale,
                         y: item.costo_euro,
                         label: item.modello,
-                        company: company
+                        company: company,
+                        baseColor: color,
+                        baseBorderColor: adjustColor(color, -20),
+                        accuracy: accuracy,
+                        similarity: Number.isFinite(similarityValue) ? similarityValue : null,
+                        baseRadius,
+                        baseBorderWidth
                     });
-                    pointColors.push(color);
                     companiesPresent.add(company);
                 });
 
@@ -526,10 +632,11 @@
                         datasets: [{
                             label: 'Modelli',
                             data: scatterData,
-                            pointBackgroundColor: pointColors,
-                            pointBorderColor: pointColors.map(c => adjustColor(c, -20)),
-                            pointRadius: 7,
-                            pointHoverRadius: 10
+                            pointBackgroundColor: scatterData.map(point => point.baseColor),
+                            pointBorderColor: scatterData.map(point => point.baseBorderColor),
+                            pointBorderWidth: scatterData.map(point => point.baseBorderWidth),
+                            pointRadius: scatterData.map(point => point.baseRadius),
+                            pointHoverRadius: scatterData.map(point => point.baseRadius + 3)
                         }]
                     },
                     options: {
@@ -538,11 +645,22 @@
                         plugins: {
                             title: { display: false },
                             legend: { display: false },
+                            potenzialeThresholdLine: {
+                                value: POTENZIALE_THRESHOLD,
+                                label: `90% accuracy ≈ ${POTENZIALE_THRESHOLD_LABEL}`,
+                                color: '#27ae60'
+                            },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
                                         const item = context.raw;
-                                        return `${item.label} [${item.company}]: (Pot: ${item.x}, Costo: ${Number(item.y).toFixed(2)} €)`;
+                                        const accuracyText = typeof item.accuracy === 'number'
+                                            ? `, Acc: ${item.accuracy.toFixed(1)}%`
+                                            : '';
+                                        const similarityText = typeof item.similarity === 'number'
+                                            ? `, Sim: ${item.similarity.toFixed(1)}%`
+                                            : '';
+                                        return `${item.label} [${item.company}]: (Pot: ${item.x}, Costo: ${Number(item.y).toFixed(2)} €${accuracyText}${similarityText})`;
                                     }
                                 }
                             }
@@ -554,6 +672,7 @@
                         animation: { duration: 300 }
                     }
                 });
+                ensureHighlightTimer();
             }
 
             function buildSimilaritaChart(data) {
@@ -611,6 +730,91 @@
             // --- Helper colore ---
             function adjustColor(color, amount) {
                 return '#' + color.replace(/^#/, '').replace(/../g, c => ('0'+Math.min(255, Math.max(0, parseInt(c, 16) + amount)).toString(16)).substr(-2));
+            }
+
+            function toggleCompanyHighlight(company, button) {
+                if (highlightedCompanies.has(company)) {
+                    highlightedCompanies.delete(company);
+                } else {
+                    highlightedCompanies.add(company);
+                }
+                updateHighlightButtonState(button, company);
+                ensureHighlightTimer();
+            }
+
+            function updateHighlightButtonState(button, company) {
+                const isActive = highlightedCompanies.has(company);
+                button.classList.toggle('active', isActive);
+                button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            }
+
+            function refreshHighlightButtons() {
+                document.querySelectorAll('.highlight-toggle').forEach(button => {
+                    const company = button.dataset.company;
+                    updateHighlightButtonState(button, company);
+                });
+            }
+
+            function resetHighlights() {
+                highlightedCompanies.clear();
+                stopHighlightTimer();
+                refreshHighlightButtons();
+                updateScatterHighlight();
+            }
+
+            function ensureHighlightTimer() {
+                const hasHighlightedPoints = updateScatterHighlight();
+                if (highlightedCompanies.size === 0 || !hasHighlightedPoints) {
+                    stopHighlightTimer();
+                    return;
+                }
+                if (!highlightIntervalId) {
+                    highlightIntervalId = setInterval(() => {
+                        highlightPulseState = !highlightPulseState;
+                        updateScatterHighlight();
+                    }, 500);
+                }
+            }
+
+            function stopHighlightTimer({ resetPulse = true } = {}) {
+                if (highlightIntervalId) {
+                    clearInterval(highlightIntervalId);
+                    highlightIntervalId = null;
+                }
+                if (resetPulse) {
+                    highlightPulseState = false;
+                }
+            }
+
+            function updateScatterHighlight() {
+                const chart = chartInstances.potenzialeCosto;
+                if (!chart) return false;
+                const dataset = chart.data.datasets?.[0];
+                if (!dataset || !Array.isArray(dataset.data)) return false;
+
+                let hasHighlightedPoint = false;
+
+                dataset.pointRadius = dataset.data.map(point => {
+                    const isHighlighted = highlightedCompanies.has(point.company);
+                    if (isHighlighted) hasHighlightedPoint = true;
+                    if (!isHighlighted) return point.baseRadius;
+                    const pulseOffset = highlightPulseState ? 3 : 1;
+                    return point.baseRadius + pulseOffset;
+                });
+                dataset.pointBackgroundColor = dataset.data.map(point => {
+                    if (!highlightedCompanies.has(point.company)) return point.baseColor;
+                    return highlightPulseState ? adjustColor(point.baseColor, 35) : adjustColor(point.baseColor, -35);
+                });
+                dataset.pointBorderColor = dataset.data.map(point => {
+                    if (!highlightedCompanies.has(point.company)) return point.baseBorderColor;
+                    return highlightPulseState ? adjustColor(point.baseBorderColor, 35) : adjustColor(point.baseBorderColor, -35);
+                });
+                dataset.pointBorderWidth = dataset.data.map(point => {
+                    if (!highlightedCompanies.has(point.company)) return point.baseBorderWidth;
+                    return highlightPulseState ? point.baseBorderWidth + 1 : point.baseBorderWidth + 0.5;
+                });
+                chart.update('none');
+                return hasHighlightedPoint;
             }
 
             // Tabs
