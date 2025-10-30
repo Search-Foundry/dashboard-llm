@@ -332,6 +332,7 @@
                 <button class="tab active" data-target="#contentMatching">Matching (True/False)</button>
                 <button class="tab" data-target="#contentPotenzialeCosto">Potenziale vs Costo</button>
                 <button class="tab" data-target="#contentSimilarita">Similarità Media</button>
+                <button class="tab" data-target="#contentCandlestick">Potenziale ± Deviazione Standard</button>
             </div>
 
             <!-- Contenuto Tabs (Grafici) -->
@@ -358,6 +359,26 @@
                     <canvas id="chartSimilarita"></canvas>
                  </div>
             </div>
+
+            <div id="contentCandlestick" class="tab-content">
+                <h2 id="candlestickChartTitle">Potenziale ± Deviazione Standard - Ordinato per Potenziale Crescente</h2>
+                
+                <!-- Controlli del Grafico -->
+                <div class="chart-controls" style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <label for="sortOrderSelect" style="font-weight: bold;">Ordina per:</label>
+                    <select id="sortOrderSelect" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
+                        <option value="potenziale_asc">Potenziale (crescente)</option>
+                        <option value="potenziale_desc">Potenziale (decrescente)</option>
+                        <option value="deviazione_asc">Deviazione Standard (crescente)</option>
+                        <option value="deviazione_desc">Deviazione Standard (decrescente)</option>
+                    </select>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chartCandlestick"></canvas>
+                </div>
+                <p class="chart-note">Ogni barra è centrata e la sua larghezza è proporzionale alla deviazione standard del modello. Le barre più lunghe indicano una maggiore variabilità. L'ordinamento verticale si basa sul criterio selezionato (es. potenziale originale).</p>
+            </div>
         </div>
 
     </div><!-- /container -->
@@ -375,9 +396,11 @@
             const ctxMatching = document.getElementById('chartMatching').getContext('2d');
             const ctxPotenzialeCosto = document.getElementById('chartPotenzialeCosto').getContext('2d');
             const ctxSimilarita = document.getElementById('chartSimilarita').getContext('2d');
+            const ctxCandlestick = document.getElementById('chartCandlestick').getContext('2d');
             const scatterLegendContainer = document.getElementById('scatterLegend'); // Container legenda custom
             const manualUploadSection = document.getElementById('manualUploadSection');
             const csvFileInput = document.getElementById('csvFileInput');
+            const sortOrderSelect = document.getElementById('sortOrderSelect');
 
             // --- Dati e Stato ---
             let allData = [];
@@ -550,6 +573,9 @@
                     filtersContainer.addEventListener('change', () => {
                         buildCharts();
                     });
+                    sortOrderSelect.addEventListener('change', () => {
+                        buildCharts();
+                    });
                     filtersChangeBound = true;
                 }
             }
@@ -690,6 +716,7 @@
                 buildMatchingChart(filteredData);
                 buildPotenzialeCostoChart(filteredData);
                 buildSimilaritaChart(filteredData);
+                buildCandlestickChart(filteredData);
             }
 
             // --- Grafici ---
@@ -856,6 +883,168 @@
                         },
                         animation: { duration: 300 }
                     }
+                });
+            }
+
+            function buildCandlestickChart(data) {
+                const sortOrder = sortOrderSelect.value;
+
+                // Calcola la deviazione standard massima per la normalizzazione
+                const allDeviazioni = allData
+                    .map(d => typeof d.deviazione_std === 'number' ? d.deviazione_std : parseFloat(d.deviazione_std))
+                    .filter(d => Number.isFinite(d));
+                const maxDev = Math.max(...allDeviazioni);
+
+                // Ordina i dati in base alla selezione (usando i valori originali)
+                const sortedData = [...data].sort((a, b) => {
+                    const potA = typeof a.potenziale === 'number' ? a.potenziale : parseFloat(a.potenziale);
+                    const potB = typeof b.potenziale === 'number' ? b.potenziale : parseFloat(b.potenziale);
+                    const devA = typeof a.deviazione_std === 'number' ? a.deviazione_std : parseFloat(a.deviazione_std);
+                    const devB = typeof b.deviazione_std === 'number' ? b.deviazione_std : parseFloat(b.deviazione_std);
+
+                    switch (sortOrder) {
+                        case 'potenziale_desc':
+                            return potB - potA;
+                        case 'deviazione_asc':
+                            return devA - devB;
+                        case 'deviazione_desc':
+                            return devB - devA;
+                        case 'potenziale_asc':
+                        default:
+                            return potA - potB;
+                    }
+                });
+
+                // Aggiorna titolo del grafico
+                const chartTitle = document.getElementById('candlestickChartTitle');
+                const titleMap = {
+                    'potenziale_asc': 'Variazione Normalizzata (Dev. Std) - Ordinato per Potenziale Crescente',
+                    'potenziale_desc': 'Variazione Normalizzata (Dev. Std) - Ordinato per Potenziale Decrescente',
+                    'deviazione_asc': 'Variazione Normalizzata (Dev. Std) - Ordinato per Dev. Standard Crescente',
+                    'deviazione_desc': 'Variazione Normalizzata (Dev. Std) - Ordinato per Dev. Standard Decrescente'
+                };
+                chartTitle.textContent = titleMap[sortOrder] || 'Variazione Normalizzata (Dev. Std)';
+
+                const labels = sortedData.map(item => item.modello);
+                const floatingBarData = [];
+
+                sortedData.forEach(item => {
+                    const potenziale = typeof item.potenziale === 'number' ? item.potenziale : parseFloat(item.potenziale);
+                    const deviazioneStd = typeof item.deviazione_std === 'number' ? item.deviazione_std : parseFloat(item.deviazione_std);
+
+                    if (!Number.isFinite(potenziale) || !Number.isFinite(deviazioneStd)) {
+                        return; // Salta dati non validi
+                    }
+
+                    // Normalizza la deviazione in base alla massima deviazione, per renderla visibile
+                    // La scala è 45 per avere un po' di margine (da 5 a 95)
+                    const deviazioneNorm = maxDev > 0 ? (deviazioneStd / maxDev) * 45 : 0;
+
+                    const company = getCompany(item);
+                    const color = companyColorMap[company] || companyColorMap['Other'];
+
+                    floatingBarData.push({
+                        x: [50 - deviazioneNorm, 50 + deviazioneNorm], // Centrato su 50
+                        y: item.modello,
+                        company: company,
+                        color: color,
+                        potenzialeOriginal: potenziale,
+                        deviazioneStdOriginal: deviazioneStd,
+                        centroGrafico: 50 // Punto centrale per la linea di mediana
+                    });
+                });
+
+                if (floatingBarData.length === 0) {
+                    console.warn('Nessun dato valido per il grafico a barre flottanti.');
+                    return;
+                }
+
+                // Altezza dinamica per includere tutte le etichette
+                const barsCount = Math.max(labels.length, 1);
+                const pixelsPerBar = 28;
+                const minHeightPx = 400;
+                const targetHeight = Math.max(minHeightPx, barsCount * pixelsPerBar);
+                ctxCandlestick.canvas.parentNode.style.height = `${targetHeight}px`;
+
+                chartInstances.candlestick = new Chart(ctxCandlestick, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Variazione Normalizzata (Dev. Std)',
+                            data: floatingBarData.map(d => d.x),
+                            backgroundColor: floatingBarData.map(d => d.color),
+                            borderColor: floatingBarData.map(d => adjustColor(d.color, -30)),
+                            borderWidth: 1,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            title: { display: false },
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const index = context.dataIndex;
+                                        const dataPoint = floatingBarData[index];
+                                        if (!dataPoint) return '';
+                                        return [
+                                            `Azienda: ${dataPoint.company}`,
+                                            `Potenziale (Originale): ${dataPoint.potenzialeOriginal.toLocaleString('it-IT')}`,
+                                            `Dev. Std (Originale): ${dataPoint.deviazioneStdOriginal.toFixed(2)}`
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                min: 0,
+                                max: 100,
+                                title: { display: true, text: 'Variazione Normalizzata (basata su Dev. Std)' },
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    autoSkip: false,
+                                    font: { size: 11 }
+                                }
+                            }
+                        },
+                        animation: { duration: 300 }
+                    },
+                    plugins: [{
+                        id: 'medianLine',
+                        afterDatasetsDraw(chart) {
+                            const ctx = chart.ctx;
+                            const meta = chart.getDatasetMeta(0);
+                            const xScale = chart.scales.x;
+
+                            meta.data.forEach((bar, index) => {
+                                const dataPoint = floatingBarData[index];
+                                if (!dataPoint) return;
+
+                                const medianX = xScale.getPixelForValue(dataPoint.centroGrafico);
+
+                                if (!Number.isFinite(medianX)) return;
+
+                                ctx.save();
+                                ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+                                ctx.lineWidth = 1.5;
+                                ctx.beginPath();
+                                ctx.moveTo(medianX, bar.y - bar.height / 2);
+                                ctx.lineTo(medianX, bar.y + bar.height / 2);
+                                ctx.stroke();
+                                ctx.restore();
+                            });
+                        }
+                    }]
                 });
             }
 
