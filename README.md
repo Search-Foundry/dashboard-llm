@@ -9,6 +9,13 @@ L'analisi deriva dal progetto "Clusterizza e misura" (`https://github.com/Search
 - Qualsiasi browser moderno (Chrome/Edge/Firefox/Safari)
 - Opzionale: un semplice server statico locale. È utile solo se vuoi l'auto-caricamento di `dati.csv` via `fetch`.
 
+## Preview
+
+la visualizzazione con i dati è disponibile a questa url:
+https://github.com/Search-Foundry/dashboard-llm
+
+
+
 ## Quick Start
 
 1) Clona o scarica la repo.
