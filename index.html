@@ -246,15 +246,18 @@
             font-weight: bold;
             box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
         }
-        .custom-legend span {
+        .custom-legend span,
+        .custom-legend canvas {
             display: inline-block;
             width: 12px;
             height: 12px;
             margin-right: 5px;
             border-radius: 2px; /* Quadrato arrotondato */
             transition: transform 0.2s ease;
+            vertical-align: middle;
         }
-        .custom-legend li.active span {
+        .custom-legend li.active span,
+        .custom-legend li.active canvas {
             transform: scale(1.2);
             box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
         }
@@ -428,6 +431,24 @@
                 'Minimax': '#8e44ad',          // Viola scuro
                 'IBM': '#d35400',              // Arancione bruciato
                 'Other': '#2c3e50'             // Grigio blu scuro
+            };
+
+            // --- Simboli per aziende ---
+            // Metà cerchi, metà altri simboli per migliorare la differenziazione visiva
+            const companySymbolMap = {
+                'OpenAI': 'circle',            // Cerchio
+                'Anthropic': 'cross',          // Croce
+                'Mistral AI': 'circle',        // Cerchio
+                'Meta': 'triangle',            // Triangolo
+                'Google': 'circle',            // Cerchio
+                'DeepSeek': 'star',            // Stella
+                'Alibaba': 'circle',           // Cerchio
+                'Microsoft': 'rect',           // Quadrato
+                'Hidden': 'circle',            // Cerchio
+                'Xai': 'crossRot',             // Croce ruotata
+                'Minimax': 'rectRounded',      // Quadrato arrotondato
+                'IBM': 'circle',               // Cerchio
+                'Other': 'triangle'           // Triangolo
             };
 
             const ACCURACY_THRESHOLD = 90;
@@ -780,6 +801,7 @@
                 data.forEach(item => {
                     const company = getCompany(item);
                     const color = companyColorMap[company] || companyColorMap['Other'];
+                    const symbol = companySymbolMap[company] || companySymbolMap['Other'];
                     const accuracy = getAccuracyPercentage(item);
                     const baseRadius = accuracy !== null && accuracy >= ACCURACY_THRESHOLD ? 9 : 7;
                     const baseBorderWidth = accuracy !== null && accuracy >= ACCURACY_THRESHOLD ? 2.5 : 1.5;
@@ -793,6 +815,7 @@
                         company: company,
                         baseColor: color,
                         baseBorderColor: adjustColor(color, -20),
+                        baseSymbol: symbol,
                         accuracy: accuracy,
                         similarity: Number.isFinite(similarityValue) ? similarityValue : null,
                         baseRadius,
@@ -813,7 +836,8 @@
                             pointBorderColor: scatterData.map(point => point.baseBorderColor),
                             pointBorderWidth: scatterData.map(point => point.baseBorderWidth),
                             pointRadius: scatterData.map(point => point.baseRadius),
-                            pointHoverRadius: scatterData.map(point => point.baseRadius + 3)
+                            pointHoverRadius: scatterData.map(point => point.baseRadius + 3),
+                            pointStyle: scatterData.map(point => point.baseSymbol)
                         }]
                     },
                     options: {
@@ -1054,15 +1078,116 @@
                 });
             }
 
+            // --- Helper per disegnare simboli nella legenda ---
+            function createSymbolCanvas(symbol, color, size = 12) {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = color;
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                
+                const centerX = size / 2;
+                const centerY = size / 2;
+                const radius = size / 2 - 2;
+                
+                switch(symbol) {
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                        ctx.fill();
+                        break;
+                    case 'cross':
+                        ctx.beginPath();
+                        ctx.moveTo(centerX, 2);
+                        ctx.lineTo(centerX, size - 2);
+                        ctx.moveTo(2, centerY);
+                        ctx.lineTo(size - 2, centerY);
+                        ctx.stroke();
+                        break;
+                    case 'crossRot':
+                        ctx.save();
+                        ctx.translate(centerX, centerY);
+                        ctx.rotate(Math.PI / 4);
+                        ctx.beginPath();
+                        ctx.moveTo(0, -radius);
+                        ctx.lineTo(0, radius);
+                        ctx.moveTo(-radius, 0);
+                        ctx.lineTo(radius, 0);
+                        ctx.stroke();
+                        ctx.restore();
+                        break;
+                    case 'triangle':
+                        ctx.beginPath();
+                        ctx.moveTo(centerX, 2);
+                        ctx.lineTo(2, size - 2);
+                        ctx.lineTo(size - 2, size - 2);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    case 'star':
+                        const spikes = 5;
+                        const outerRadius = radius;
+                        const innerRadius = radius * 0.5;
+                        ctx.beginPath();
+                        for (let i = 0; i < spikes * 2; i++) {
+                            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                            const angle = (i * Math.PI) / spikes - Math.PI / 2;
+                            const x = centerX + radius * Math.cos(angle);
+                            const y = centerY + radius * Math.sin(angle);
+                            if (i === 0) ctx.moveTo(x, y);
+                            else ctx.lineTo(x, y);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    case 'rect':
+                        ctx.fillRect(2, 2, size - 4, size - 4);
+                        break;
+                    case 'rectRounded':
+                        const cornerRadius = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(2 + cornerRadius, 2);
+                        ctx.lineTo(size - 2 - cornerRadius, 2);
+                        ctx.quadraticCurveTo(size - 2, 2, size - 2, 2 + cornerRadius);
+                        ctx.lineTo(size - 2, size - 2 - cornerRadius);
+                        ctx.quadraticCurveTo(size - 2, size - 2, size - 2 - cornerRadius, size - 2);
+                        ctx.lineTo(2 + cornerRadius, size - 2);
+                        ctx.quadraticCurveTo(2, size - 2, 2, size - 2 - cornerRadius);
+                        ctx.lineTo(2, 2 + cornerRadius);
+                        ctx.quadraticCurveTo(2, 2, 2 + cornerRadius, 2);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    default:
+                        // Default a cerchio
+                        ctx.beginPath();
+                        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                        ctx.fill();
+                }
+                
+                return canvas;
+            }
+
             // --- Legenda custom (per aziende) ---
             function buildCustomLegend(companies) {
                 scatterLegendContainer.innerHTML = '';
                 const sortedCompanies = Array.from(companies).sort();
                 sortedCompanies.forEach(company => {
                     const color = companyColorMap[company] || companyColorMap['Other'];
+                    const symbol = companySymbolMap[company] || companySymbolMap['Other'];
                     const li = document.createElement('li');
                     li.dataset.company = company;
-                    li.innerHTML = `<span style="background-color: ${color};"></span> ${company}`;
+                    
+                    // Crea canvas con simbolo invece di span semplice
+                    const symbolCanvas = createSymbolCanvas(symbol, color, 12);
+                    symbolCanvas.style.marginRight = '5px';
+                    symbolCanvas.style.verticalAlign = 'middle';
+                    
+                    const textNode = document.createTextNode(' ' + company);
+                    li.appendChild(symbolCanvas);
+                    li.appendChild(textNode);
                     
                     // Rendi cliccabile per toggle highlight
                     li.addEventListener('click', () => {
