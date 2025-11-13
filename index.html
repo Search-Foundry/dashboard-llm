@@ -413,17 +413,21 @@
             let filtersChangeBound = false;
 
             // --- Colori per aziende ---
+            // Palette ottimizzata per 12 gruppi con massima differenziazione visiva
             const companyColorMap = {
-                'OpenAI': '#3498db',
-                'Anthropic': '#e67e22',
-                'Mistral AI': '#2ecc71',
-                'Meta': '#9b59b6',
-                'Google': '#e74c3c',
-                'DeepSeek': '#1abc9c',
-                'Alibaba': '#f1c40f',
-                'Microsoft': '#8e44ad',
-                'Hidden': '#7f8c8d',
-                'Other': '#000000'
+                'OpenAI': '#3498db',           // Blu brillante
+                'Anthropic': '#e67e22',        // Arancione
+                'Mistral AI': '#27ae60',       // Verde smeraldo
+                'Meta': '#9b59b6',             // Viola
+                'Google': '#e74c3c',           // Rosso
+                'DeepSeek': '#16a085',         // Turchese scuro
+                'Alibaba': '#f39c12',          // Arancione dorato
+                'Microsoft': '#2980b9',        // Blu scuro
+                'Hidden': '#34495e',           // Grigio antracite
+                'Xai': '#c0392b',              // Rosso scuro
+                'Minimax': '#8e44ad',          // Viola scuro
+                'IBM': '#d35400',              // Arancione bruciato
+                'Other': '#2c3e50'             // Grigio blu scuro
             };
 
             const ACCURACY_THRESHOLD = 90;
