@@ -22,7 +22,7 @@ https://search-foundry.github.io/dashboard-llm/
 
 2) Avvio rapido senza server (consigliato se vuoi solo visualizzare un CSV locale):
 
-   - Apri il file `dashboard-gpt5.html` direttamente nel browser (doppio click).
+   - Apri il file `index.html` direttamente nel browser (doppio click).
    - Clicca su "Carica CSV" e seleziona `dati.csv` (o un tuo CSV con lo stesso schema).
 
    Oppure, se preferisci l'auto-caricamento di `dati.csv`:
@@ -37,7 +37,7 @@ https://search-foundry.github.io/dashboard-llm/
 
      - Oppure usa un'estensione tipo “Live Server” di VS Code.
 
-   - Apri `http://localhost:8000/dashboard-gpt5.html`
+   - Apri `http://localhost:8000/index.html`
 
 3) La pagina mostra tre grafici con filtri per azienda/modello:
 
