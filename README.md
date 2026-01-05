@@ -1,95 +1,95 @@
 # dashboard-llm
 
-Dashboard interattiva (HTML + JS) per visualizzare `dati.csv` con Chart.js.
+🌐 **Language:** English | [Italiano](readme.it.md)
 
-L'analisi deriva dal progetto "Clusterizza e misura" (`https://github.com/Search-Foundry/aicategorizer`).
+---
 
-## Requisiti
+Interactive dashboard (HTML + JS) to visualize `dati.csv` with Chart.js.
 
-- Qualsiasi browser moderno (Chrome/Edge/Firefox/Safari)
-- Opzionale: un semplice server statico locale. È utile solo se vuoi l'auto-caricamento di `dati.csv` via `fetch`.
+The analysis comes from the "Clusterizza e misura" project (`https://github.com/Search-Foundry/aicategorizer`).
+
+## Requirements
+
+- Any modern browser (Chrome/Edge/Firefox/Safari)
+- Optional: a simple local static server. Only useful if you want auto-loading of `dati.csv` via `fetch`.
 
 ## Preview
 
-la visualizzazione con i dati è disponibile a questa url:
+The visualization with data is available at this URL:
 https://search-foundry.github.io/dashboard-llm/
-
-
 
 ## Quick Start
 
-1) Clona o scarica la repo.
+1) Clone or download the repo.
 
-2) Avvio rapido senza server (consigliato se vuoi solo visualizzare un CSV locale):
+2) Quick start without a server (recommended if you just want to view a local CSV):
 
-   - Apri il file `index.html` direttamente nel browser (doppio click).
-   - Clicca su "Carica CSV" e seleziona `dati.csv` (o un tuo CSV con lo stesso schema).
+   - Open the `index.html` file directly in the browser (double click).
+   - Click on "Load CSV" and select `dati.csv` (or your own CSV with the same schema).
 
-   Oppure, se preferisci l'auto-caricamento di `dati.csv`:
+   Alternatively, if you prefer auto-loading of `dati.csv`:
 
-   - Avvia un server statico nella cartella del progetto.
-     - Con Python 3:
+   - Start a static server in the project folder.
+     - With Python 3:
 
        ```bash
        cd dashboard_interattiva
        python3 -m http.server 8000
        ```
 
-     - Oppure usa un'estensione tipo “Live Server” di VS Code.
+     - Or use an extension like "Live Server" in VS Code.
 
-   - Apri `http://localhost:8000/index.html`
+   - Open `http://localhost:8000/index.html`
 
-3) La pagina mostra tre grafici con filtri per azienda/modello:
+3) The page shows three charts with filters for company/model:
 
-   - Matching (True/False) — barre orizzontali impilate
-   - Potenziale vs Costo — scatter con legenda per azienda
-   - Similarità media — barre orizzontali ordinate
+   - Matching (True/False) — stacked horizontal bars
+   - Potential vs Cost — scatter with legend by company
+   - Average Similarity — sorted horizontal bars
 
-## Aggiornare i dati
+## Updating the data
 
-- Sostituisci il file `dati.csv` mantenendo l'intestazione di colonne attesa dalla pagina.
-- Se l'auto-caricamento fallisce o non usi un server, usa il caricamento manuale: pulsante "Carica CSV".
+- Replace the `dati.csv` file while keeping the column headers expected by the page.
+- If auto-loading fails or you're not using a server, use manual upload: "Load CSV" button.
 
-## Formato dati (minimo indispensabile)
+## Data format (minimum required)
 
-La dashboard si aspetta colonne con questi nomi:
+The dashboard expects columns with these names:
 
-- `modello` — nome del modello
-- `azienda` — vendor/azienda del modello
-- `costo_euro` — costo in euro (usato come asse Y nello scatter)
-- `true` — conteggio risposte corrette/positive
-- `false` — conteggio risposte errate/negative
-- `total_query` — numero totale di query
-- `percent_true` — percentuale di `true` su `total_query`
-- `similarita_media` — similarità media (0–100)
-- `deviazione_std` — deviazione standard della similarità
-- `potenziale` — punteggio potenziale (usato come asse X nello scatter)
+- `modello` — model name
+- `azienda` — model vendor/company
+- `costo_euro` — cost in euros (used as Y axis in scatter)
+- `true` — count of correct/positive responses
+- `false` — count of wrong/negative responses
+- `total_query` — total number of queries
+- `percent_true` — percentage of `true` over `total_query`
+- `similarita_media` — average similarity (0–100)
+- `deviazione_std` — standard deviation of similarity
+- `potenziale` — potential score (used as X axis in scatter)
 
-Nota: eventuali colonne extra vengono ignorate. Righe completamente vuote vengono scartate.
+Note: extra columns are ignored. Completely empty rows are discarded.
 
-## Troubleshooting veloce
+## Quick Troubleshooting
 
-- Apri via `file://` e non vedi dati? Usa "Carica CSV" per selezionare il file.
-- Vuoi evitare di selezionare manualmente il file ad ogni avvio? Usa un server locale come indicato sopra.
-- Etichette che non si vedono? I grafici gestiscono l'altezza dinamicamente e non saltano più i tick; assicurati che il container non sia limitato da CSS esterno.
+- Opening via `file://` and not seeing data? Use "Load CSV" to select the file.
+- Want to avoid manually selecting the file at each startup? Use a local server as indicated above.
+- Labels not visible? Charts dynamically manage height and no longer skip ticks; make sure the container is not limited by external CSS.
 
-## ✍️ Crediti
+## ✍️ Credits
 
 ![Search Foundry](screenshots/SearchFoundryLogo.svg)
 
-- A cura di [Andrea Scarpetta](https://www.andreascarpetta.it), parte del collettivo [Search Foundry](https://www.searchfoundry.pro)
+- Curated by [Andrea Scarpetta](https://www.andreascarpetta.it), part of the [Search Foundry](https://www.searchfoundry.pro) collective
 
-## Licenza
+## License
 
-Questo progetto è distribuito con licenza [MIT](LICENSE).
+This project is distributed under the [MIT](LICENSE) license.
 
 ---
 © 2025 Andrea Scarpetta - Founding member of Search Foundry
 
 Made with ❤️ and 🤖
 
-Questo progetto è rilasciato a scopo didattico e sperimentale.
+This project is released for educational and experimental purposes.
 
-Se ti è stato utile, lascia una ⭐️ su GitHub!
-
-
+If you found it useful, leave a ⭐️ on GitHub!

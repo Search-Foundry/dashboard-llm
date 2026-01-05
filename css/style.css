@@ -1,0 +1,331 @@
+/* AI Models Dashboard - Main Styles */
+
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f7f6;
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0; /* Allows content to shrink */
+}
+
+.filter-section {
+    width: 320px;
+    min-width: 280px;
+    flex-shrink: 0;
+    background-color: #fafafa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.filter-section label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: bold;
+    font-size: 1.05em;
+    color: #2c3e50;
+}
+
+/* Checkbox filter styles */
+#filters {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.company-group {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px 10px;
+    background: #ffffff;
+    margin-bottom: 0;
+    transition: all 0.2s ease;
+}
+
+.company-group:hover {
+    border-color: #3498db;
+    box-shadow: 0 1px 3px rgba(52, 152, 219, 0.1);
+}
+
+.company-group.collapsed .model-list {
+    display: none;
+}
+
+.company-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-weight: 600;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.company-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.collapse-toggle {
+    font-size: 0.85em;
+    color: #666;
+    transition: transform 0.2s ease;
+    width: 16px;
+    text-align: center;
+}
+
+.company-group.collapsed .collapse-toggle {
+    transform: rotate(-90deg);
+}
+
+.highlight-toggle {
+    border: 1px solid #3498db;
+    background: #ffffff;
+    color: #3498db;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.highlight-toggle:hover {
+    background: #ecf5fc;
+}
+
+.highlight-toggle.active {
+    background: #3498db;
+    color: #fff;
+}
+
+.model-list {
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-left: 2px;
+    margin-top: 4px;
+}
+
+/* Custom scrollbar for model-list */
+.model-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.model-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.model-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.model-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Custom scrollbar for filter-section */
+.filter-section::-webkit-scrollbar {
+    width: 8px;
+}
+
+.filter-section::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.filter-section::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.filter-section::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.model-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0;
+    font-size: 0.95em;
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap; /* Allows tabs to wrap on smaller screens */
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab {
+    padding: 10px 15px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    margin-right: 5px;
+    margin-bottom: 5px; /* Space when wrapping */
+    border-bottom: 3px solid transparent;
+    font-size: 1em;
+    transition: all 0.3s ease;
+    white-space: nowrap; /* Prevents tab text from wrapping */
+}
+
+.tab:hover {
+    background-color: #f0f0f0;
+}
+
+.tab.active {
+    border-bottom: 3px solid #3498db;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.tab-content {
+    display: none; /* Hidden by default */
+    padding: 15px 0;
+}
+
+.tab-content.active {
+    display: block; /* Show active content */
+}
+
+/* Responsive chart container */
+.chart-container {
+    position: relative;
+    margin: auto;
+    height: 60vh; /* Height relative to viewport */
+    width: 95%;   /* Width relative to container */
+    max-width: 1000px; /* Maximum limit for large screens */
+    min-height: 350px; /* Minimum height to prevent collapse */
+}
+
+/* Custom legend (optional) */
+.custom-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 15px;
+    padding: 0;
+    list-style: none;
+}
+
+.custom-legend li {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.custom-legend li:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.custom-legend li.active {
+    background-color: #e3f2fd;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+}
+
+.custom-legend span,
+.custom-legend canvas {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+    border-radius: 2px; /* Rounded square */
+    transition: transform 0.2s ease;
+    vertical-align: middle;
+}
+
+.custom-legend li.active span,
+.custom-legend li.active canvas {
+    transform: scale(1.2);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.chart-note {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 0.85em;
+    color: #555;
+}
+
+
+/* Media query for smaller screens */
+@media (max-width: 1024px) {
+    .container {
+        flex-direction: column;
+    }
+    .filter-section {
+        width: 100%;
+        position: static;
+        max-height: 400px;
+    }
+    .main-content {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        height: 50vh;
+        min-height: 300px;
+    }
+    .tab {
+        font-size: 0.9em;
+        padding: 8px 10px;
+    }
+    .filter-section {
+        max-height: 350px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tab {
+        font-size: 0.8em;
+    }
+    .chart-container {
+        min-height: 250px;
+    }
+    .filter-section {
+        max-height: 300px;
+    }
+}

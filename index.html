@@ -1,400 +1,98 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Modelli AI</title>
+    <title>AI Models Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 20px;
-            background-color: #f4f7f6;
-            color: #333;
-        }
-
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 20px auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
-
-        .main-content {
-            flex: 1;
-            min-width: 0; /* Permette al contenuto di restringersi */
-        }
-
-        .filter-section {
-            width: 320px;
-            min-width: 280px;
-            flex-shrink: 0;
-            background-color: #fafafa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        .filter-section label {
-            display: block;
-            margin-bottom: 12px;
-            font-weight: bold;
-            font-size: 1.05em;
-            color: #2c3e50;
-        }
-
-        /* Nuovi stili per filtri a checkbox */
-        #filters {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .company-group {
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 8px 10px;
-            background: #ffffff;
-            margin-bottom: 0;
-            transition: all 0.2s ease;
-        }
-        .company-group:hover {
-            border-color: #3498db;
-            box-shadow: 0 1px 3px rgba(52, 152, 219, 0.1);
-        }
-        .company-group.collapsed .model-list {
-            display: none;
-        }
-        .company-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-weight: 600;
-            gap: 10px;
-            cursor: pointer;
-            user-select: none;
-        }
-        .company-header-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-        }
-        .collapse-toggle {
-            font-size: 0.85em;
-            color: #666;
-            transition: transform 0.2s ease;
-            width: 16px;
-            text-align: center;
-        }
-        .company-group.collapsed .collapse-toggle {
-            transform: rotate(-90deg);
-        }
-        .highlight-toggle {
-            border: 1px solid #3498db;
-            background: #ffffff;
-            color: #3498db;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 0.85em;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .highlight-toggle:hover {
-            background: #ecf5fc;
-        }
-        .highlight-toggle.active {
-            background: #3498db;
-            color: #fff;
-        }
-        .model-list {
-            max-height: 200px;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-left: 2px;
-            margin-top: 4px;
-        }
-        /* Scrollbar personalizzata per model-list */
-        .model-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .model-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-        .model-list::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 3px;
-        }
-        .model-list::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        /* Scrollbar personalizzata per filter-section */
-        .filter-section::-webkit-scrollbar {
-            width: 8px;
-        }
-        .filter-section::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        .filter-section::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-        .filter-section::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-        .model-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin: 2px 0;
-            font-size: 0.95em;
-        }
-
-        .tabs {
-            display: flex;
-            flex-wrap: wrap; /* Permette ai tab di andare a capo su schermi piccoli */
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .tab {
-            padding: 10px 15px;
-            cursor: pointer;
-            border: none;
-            background-color: transparent;
-            margin-right: 5px;
-            margin-bottom: 5px; /* Spazio se vanno a capo */
-            border-bottom: 3px solid transparent;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            white-space: nowrap; /* Evita che il testo del tab vada a capo */
-        }
-
-        .tab:hover {
-            background-color: #f0f0f0;
-        }
-
-        .tab.active {
-            border-bottom: 3px solid #3498db;
-            font-weight: bold;
-            color: #3498db;
-        }
-
-        .tab-content {
-            display: none; /* Nascosto di default */
-            padding: 15px 0;
-        }
-
-        .tab-content.active {
-            display: block; /* Mostra il contenuto attivo */
-        }
-
-        /* Responsive canvas container */
-        .chart-container {
-            position: relative;
-            margin: auto;
-            height: 60vh; /* Altezza relativa alla viewport */
-            width: 95%;   /* Larghezza relativa al container */
-            max-width: 1000px; /* Limite massimo per schermi grandi */
-            min-height: 350px; /* Altezza minima per evitare collassi */
-        }
-
-        /* Legenda personalizzata (opzionale) */
-        .custom-legend {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 15px;
-            padding: 0;
-            list-style: none;
-        }
-        .custom-legend li {
-            display: flex;
-            align-items: center;
-            margin-right: 15px;
-            margin-bottom: 5px;
-            font-size: 0.9em;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            user-select: none;
-        }
-        .custom-legend li:hover {
-            background-color: #f0f0f0;
-            transform: scale(1.05);
-        }
-        .custom-legend li.active {
-            background-color: #e3f2fd;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
-        }
-        .custom-legend span,
-        .custom-legend canvas {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            margin-right: 5px;
-            border-radius: 2px; /* Quadrato arrotondato */
-            transition: transform 0.2s ease;
-            vertical-align: middle;
-        }
-        .custom-legend li.active span,
-        .custom-legend li.active canvas {
-            transform: scale(1.2);
-            box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
-        }
-        .chart-note {
-            margin-top: 12px;
-            text-align: center;
-            font-size: 0.85em;
-            color: #555;
-        }
-
-
-        /* Media query per schermi più piccoli */
-        @media (max-width: 1024px) {
-            .container {
-                flex-direction: column;
-            }
-            .filter-section {
-                width: 100%;
-                position: static;
-                max-height: 400px;
-            }
-            .main-content {
-                width: 100%;
-            }
-        }
-        @media (max-width: 768px) {
-            .chart-container {
-                height: 50vh;
-                min-height: 300px;
-            }
-            .tab {
-                font-size: 0.9em;
-                padding: 8px 10px;
-            }
-            .filter-section {
-                max-height: 350px;
-            }
-        }
-         @media (max-width: 480px) {
-             .tab {
-                 font-size: 0.8em;
-             }
-             .chart-container {
-                 min-height: 250px;
-             }
-             .filter-section {
-                 max-height: 300px;
-             }
-         }
-    </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Sezione Filtri -->
+        <!-- Filters Section -->
         <div class="filter-section">
-            <label>Filtra per Azienda e Modello:</label>
+            <label>Filter by Company and Model:</label>
             <div id="filters">
-                <!-- Gruppi aziende e checkbox modelli verranno generati da JS -->
+                <!-- Company groups and model checkboxes will be generated by JS -->
             </div>
         </div>
 
-        <!-- Contenuto Principale -->
+        <!-- Main Content -->
         <div class="main-content">
-            <h1>Analisi Performance Modelli AI</h1>
-            <h3>Link alla <a href="https://github.com/Search-Foundry/dashboard-llm"> Repository GitHub</a>
+            <h1>AI Models Performance Analysis</h1>
+            <h3>Link to <a href="https://github.com/Search-Foundry/dashboard-llm"> GitHub Repository</a>
             </h3>
 
-            <!-- Sezione Caricamento Dati Manuale -->
+            <!-- Manual Data Upload Section -->
             <div id="manualUploadSection" style="display: none; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
-                <p style="color: #e74c3c; font-weight: bold;">Errore nel caricamento dati automatico. Seleziona il file 'dati.csv' per avviare il caricamento immediatamente:</p>
+                <p style="color: #e74c3c; font-weight: bold;">Auto data loading failed. Select the 'dati.csv' file to start loading immediately:</p>
                 <input type="file" id="csvFileInput" accept=".csv">
             </div>
 
-            <!-- Sezione Tabs -->
+            <!-- Tabs Section -->
             <div class="tabs">
                 <button class="tab active" data-target="#contentMatching">Matching (True/False)</button>
-                <button class="tab" data-target="#contentPotenzialeCosto">Potenziale vs Costo</button>
-                <button class="tab" data-target="#contentSimilarita">Similarità Media</button>
-                <button class="tab" data-target="#contentCandlestick">Potenziale ± Deviazione Standard</button>
+                <button class="tab" data-target="#contentPotenzialeCosto">Potential vs Cost</button>
+                <button class="tab" data-target="#contentSimilarita">Average Similarity</button>
+                <button class="tab" data-target="#contentCandlestick">Potential ± Standard Deviation</button>
             </div>
 
-            <!-- Contenuto Tabs (Grafici) -->
+            <!-- Tab Content (Charts) -->
             <div id="contentMatching" class="tab-content active">
-                <h2>Matching (True/False) - Ordinato per True Decrescente</h2>
+                <h2>Matching (True/False) - Sorted by True Descending</h2>
                 <div class="chart-container">
                     <canvas id="chartMatching"></canvas>
                 </div>
             </div>
 
             <div id="contentPotenzialeCosto" class="tab-content">
-                <h2>Potenziale vs Costo</h2>
+                <h2>Potential vs Cost</h2>
                  <div class="chart-container">
                     <canvas id="chartPotenzialeCosto"></canvas>
                  </div>
-                 <!-- Legenda Personalizzata per colori scatter -->
+                 <!-- Custom Legend for scatter colors -->
                  <ul id="scatterLegend" class="custom-legend"></ul>
-                 <p class="chart-note">I marker più grandi indicano modelli con accuracy (percentuale di true) ≥ 90%.</p>
+                 <p class="chart-note">Larger markers indicate models with accuracy (percentage of true) ≥ 90%.</p>
             </div>
 
             <div id="contentSimilarita" class="tab-content">
-                <h2>Similarità Semantica Media - Ordinata Decrescente</h2>
+                <h2>Average Semantic Similarity - Sorted Descending</h2>
                  <div class="chart-container">
                     <canvas id="chartSimilarita"></canvas>
                  </div>
             </div>
 
             <div id="contentCandlestick" class="tab-content">
-                <h2 id="candlestickChartTitle">Potenziale ± Deviazione Standard - Ordinato per Potenziale Crescente</h2>
-                
-                <!-- Controlli del Grafico -->
+                <h2 id="candlestickChartTitle">Potential ± Standard Deviation - Sorted by Potential Ascending</h2>
+
+                <!-- Chart Controls -->
                 <div class="chart-controls" style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                    <label for="sortOrderSelect" style="font-weight: bold;">Ordina per:</label>
+                    <label for="sortOrderSelect" style="font-weight: bold;">Sort by:</label>
                     <select id="sortOrderSelect" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc;">
-                        <option value="potenziale_asc">Potenziale (crescente)</option>
-                        <option value="potenziale_desc">Potenziale (decrescente)</option>
-                        <option value="deviazione_asc">Deviazione Standard (crescente)</option>
-                        <option value="deviazione_desc">Deviazione Standard (decrescente)</option>
+                        <option value="potenziale_asc">Potential (ascending)</option>
+                        <option value="potenziale_desc">Potential (descending)</option>
+                        <option value="deviazione_asc">Standard Deviation (ascending)</option>
+                        <option value="deviazione_desc">Standard Deviation (descending)</option>
                     </select>
                 </div>
 
                 <div class="chart-container">
                     <canvas id="chartCandlestick"></canvas>
                 </div>
-                <p class="chart-note">Ogni barra è centrata e la sua larghezza è proporzionale alla deviazione standard del modello. Le barre più lunghe indicano una maggiore variabilità. L'ordinamento verticale si basa sul criterio selezionato (es. potenziale originale).</p>
+                <p class="chart-note">Each bar is centered and its width is proportional to the model's standard deviation. Longer bars indicate greater variability. The vertical sorting is based on the selected criterion (e.g., original potential).</p>
             </div>
         </div>
 
     </div><!-- /container -->
 
-    <!-- Dataset JSON (non più utilizzato, lasciato per riferimento) -->
+    <!-- Dataset JSON (no longer used, left for reference) -->
     <script type="application/json" id="modelData">[]</script>
 
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Elementi DOM ---
+            // --- DOM Elements ---
             const filtersContainer = document.getElementById('filters');
             const tabs = document.querySelectorAll('.tab');
             const tabContents = document.querySelectorAll('.tab-content');
@@ -402,58 +100,58 @@
             const ctxPotenzialeCosto = document.getElementById('chartPotenzialeCosto').getContext('2d');
             const ctxSimilarita = document.getElementById('chartSimilarita').getContext('2d');
             const ctxCandlestick = document.getElementById('chartCandlestick').getContext('2d');
-            const scatterLegendContainer = document.getElementById('scatterLegend'); // Container legenda custom
+            const scatterLegendContainer = document.getElementById('scatterLegend'); // Custom legend container
             const manualUploadSection = document.getElementById('manualUploadSection');
             const csvFileInput = document.getElementById('csvFileInput');
             const sortOrderSelect = document.getElementById('sortOrderSelect');
 
-            // --- Dati e Stato ---
+            // --- Data and State ---
             let allData = [];
-            let chartInstances = {}; // Per tenere traccia dei grafici attivi e distruggerli
-            const highlightedCompanies = new Set(); // Aziende con highlight attivo
+            let chartInstances = {}; // To keep track of active charts and destroy them
+            const highlightedCompanies = new Set(); // Companies with active highlight
             let highlightIntervalId = null;
             let highlightPulseState = false;
             let filtersChangeBound = false;
 
-            // --- Colori per aziende ---
-            // Palette ottimizzata per 12 gruppi con massima differenziazione visiva
+            // --- Colors for companies ---
+            // Palette optimized for 12 groups with maximum visual differentiation
             const companyColorMap = {
-                'OpenAI': '#3498db',           // Blu brillante
-                'Anthropic': '#e67e22',        // Arancione
-                'Mistral AI': '#27ae60',       // Verde smeraldo
-                'Meta': '#9b59b6',             // Viola
-                'Google': '#e74c3c',           // Rosso
-                'DeepSeek': '#16a085',         // Turchese scuro
-                'Alibaba': '#f39c12',          // Arancione dorato
-                'Microsoft': '#2980b9',        // Blu scuro
-                'Hidden': '#34495e',           // Grigio antracite
-                'Xai': '#c0392b',              // Rosso scuro
-                'Minimax': '#8e44ad',          // Viola scuro
-                'IBM': '#d35400',              // Arancione bruciato
-                'Other': '#2c3e50'             // Grigio blu scuro
+                'OpenAI': '#3498db',           // Bright blue
+                'Anthropic': '#e67e22',        // Orange
+                'Mistral AI': '#27ae60',       // Emerald green
+                'Meta': '#9b59b6',             // Purple
+                'Google': '#e74c3c',           // Red
+                'DeepSeek': '#16a085',         // Dark teal
+                'Alibaba': '#f39c12',          // Golden orange
+                'Microsoft': '#2980b9',        // Dark blue
+                'Hidden': '#34495e',           // Anthracite gray
+                'Xai': '#c0392b',              // Dark red
+                'Minimax': '#8e44ad',          // Dark purple
+                'IBM': '#d35400',              // Burnt orange
+                'Other': '#2c3e50'             // Blue gray dark
             };
 
-            // --- Simboli per aziende ---
-            // Metà cerchi, metà altri simboli per migliorare la differenziazione visiva
+            // --- Symbols for companies ---
+            // Half circles, half other symbols to improve visual differentiation
             const companySymbolMap = {
-                'OpenAI': 'circle',            // Cerchio
-                'Anthropic': 'cross',          // Croce
-                'Mistral AI': 'circle',        // Cerchio
-                'Meta': 'triangle',            // Triangolo
-                'Google': 'circle',            // Cerchio
-                'DeepSeek': 'star',            // Stella
-                'Alibaba': 'circle',           // Cerchio
-                'Microsoft': 'rect',           // Quadrato
-                'Hidden': 'circle',            // Cerchio
-                'Xai': 'crossRot',             // Croce ruotata
-                'Minimax': 'rectRounded',      // Quadrato arrotondato
-                'IBM': 'circle',               // Cerchio
-                'Other': 'triangle'           // Triangolo
+                'OpenAI': 'circle',            // Circle
+                'Anthropic': 'cross',          // Cross
+                'Mistral AI': 'circle',        // Circle
+                'Meta': 'triangle',            // Triangle
+                'Google': 'circle',            // Circle
+                'DeepSeek': 'star',            // Star
+                'Alibaba': 'circle',           // Circle
+                'Microsoft': 'rect',           // Square
+                'Hidden': 'circle',            // Circle
+                'Xai': 'crossRot',             // Rotated cross
+                'Minimax': 'rectRounded',      // Rounded square
+                'IBM': 'circle',               // Circle
+                'Other': 'triangle'           // Triangle
             };
 
             const ACCURACY_THRESHOLD = 90;
             const POTENZIALE_THRESHOLD = 29250;
-            const POTENZIALE_THRESHOLD_LABEL = POTENZIALE_THRESHOLD.toLocaleString('it-IT');
+            const POTENZIALE_THRESHOLD_LABEL = POTENZIALE_THRESHOLD.toLocaleString('en-US');
             const potenzialeThresholdPlugin = {
                 id: 'potenzialeThresholdLine',
                 afterDatasetsDraw(chart, args, pluginOptions) {
@@ -479,9 +177,9 @@
                     ctx.setLineDash([]);
 
                     const formattedThreshold = typeof threshold === 'number' && threshold.toLocaleString
-                        ? threshold.toLocaleString('it-IT')
+                        ? threshold.toLocaleString('en-US')
                         : threshold;
-                    const label = options.label || `Potenziale ≥ ${formattedThreshold}`;
+                    const label = options.label || `Potential ≥ ${formattedThreshold}`;
                     ctx.fillStyle = options.color || '#27ae60';
                     ctx.font = options.font || '12px sans-serif';
                     ctx.textBaseline = 'top';
@@ -510,16 +208,16 @@
                 return null;
             }
 
-            // --- Inizializzazione ---
+            // --- Initialization ---
             try {
                 loadData();
                 csvFileInput.addEventListener('change', handleManualUpload);
             } catch (error) {
-                console.error("Errore durante l'inizializzazione:", error);
-                alert("Impossibile caricare i dati o inizializzare la dashboard.");
+                console.error("Error during initialization:", error);
+                alert("Unable to load data or initialize the dashboard.");
             }
 
-            // --- Caricamento dati ---
+            // --- Data loading ---
             async function loadData() {
                 try {
                     const response = await fetch('dati.csv');
@@ -529,7 +227,7 @@
                     const csvText = await response.text();
                     parseCsvData(csvText);
                 } catch (error) {
-                    console.warn("Impossibile caricare dati.csv automaticamente. Abilitazione caricamento manuale.", error);
+                    console.warn("Unable to load dati.csv automatically. Enabling manual upload.", error);
                     manualUploadSection.style.display = 'block';
                 }
             }
@@ -543,24 +241,24 @@
                         complete: function(results) {
                             if (results.errors.length) {
                                 console.error("Error parsing CSV:", results.errors);
-                                alert("Errore durante il parsing del file CSV. Controlla il formato.");
+                                alert("Error parsing CSV file. Check the format.");
                                 return;
                             }
-                            allData = results.data.filter(row => Object.values(row).some(x => x !== null && x !== '')); // Filtra righe vuote
+                            allData = results.data.filter(row => Object.values(row).some(x => x !== null && x !== '')); // Filter empty rows
                             if (allData.length === 0) {
-                                alert("Il file CSV caricato è vuoto o non contiene dati validi.");
+                                alert("The uploaded CSV file is empty or contains no valid data.");
                                 return;
                             }
                             manualUploadSection.style.display = 'none';
                             initializeDashboard();
                         },
                         error: function(err) {
-                            console.error("Errore nella lettura del file:", err);
-                            alert("Errore nella lettura del file.");
+                            console.error("Error reading file:", err);
+                            alert("Error reading file.");
                         }
                     });
                 } else {
-                    alert("Seleziona un file CSV prima di caricare.");
+                    alert("Select a CSV file before loading.");
                 }
             }
 
@@ -571,20 +269,20 @@
                     complete: function(results) {
                         if (results.errors.length) {
                             console.error("Error parsing CSV:", results.errors);
-                            alert("Errore durante il parsing del file CSV. Controlla il formato.");
+                            alert("Error parsing CSV file. Check the format.");
                             return;
                         }
                         allData = results.data.filter(row => Object.values(row).some(x => x !== null && x !== ''));
                         if (allData.length === 0) {
-                            alert("Il file CSV è vuoto o non contiene dati validi.");
+                            alert("The CSV file is empty or contains no valid data.");
                             manualUploadSection.style.display = 'block';
                             return;
                         }
                         initializeDashboard();
                     },
                     error: function(err) {
-                        console.error("Errore nel parsing CSV:", err);
-                        alert("Errore nel parsing del CSV caricato automaticamente.");
+                        console.error("Error parsing CSV:", err);
+                        alert("Error parsing automatically loaded CSV.");
                         manualUploadSection.style.display = 'block';
                     }
                 });
@@ -594,8 +292,8 @@
                 resetHighlights();
                 buildFilters();
                 setupTabs();
-                buildCharts(); // Costruisci i grafici iniziali
-                // Rende reattivo: ricostruisci i grafici ad ogni cambio checkbox
+                buildCharts(); // Build initial charts
+                // Make reactive: rebuild charts on every checkbox change
                 if (!filtersChangeBound) {
                     filtersContainer.addEventListener('change', () => {
                         buildCharts();
@@ -607,7 +305,7 @@
                 }
             }
 
-            // --- Costruzione filtri a checkbox ---
+            // --- Building checkbox filters ---
             function buildFilters() {
                 filtersContainer.innerHTML = '';
                 const byCompany = groupBy(allData, item => getCompany(item));
@@ -628,7 +326,7 @@
                     const collapseToggle = document.createElement('span');
                     collapseToggle.className = 'collapse-toggle';
                     collapseToggle.textContent = '▾';
-                    collapseToggle.setAttribute('aria-label', 'Espandi/Collassa');
+                    collapseToggle.setAttribute('aria-label', 'Expand/Collapse');
                     
                     const headerLabel = document.createElement('label');
                     const companyCheckbox = document.createElement('input');
@@ -650,15 +348,15 @@
                     highlightButton.dataset.company = company;
                     highlightButton.textContent = 'Highlight';
                     highlightButton.addEventListener('click', (e) => {
-                        e.stopPropagation(); // Previene il toggle del gruppo quando si clicca Highlight
+                        e.stopPropagation(); // Prevents group toggle when clicking Highlight
                         toggleCompanyHighlight(company, highlightButton);
                     });
                     updateHighlightButtonState(highlightButton, company);
                     header.appendChild(highlightButton);
                     
-                    // Toggle collasso gruppo
+                    // Toggle group collapse
                     header.addEventListener('click', (e) => {
-                        // Non toggle se il click è sul checkbox o sul pulsante Highlight
+                        // Don't toggle if click is on checkbox or Highlight button
                         if (e.target === companyCheckbox || e.target === highlightButton || e.target.closest('.highlight-toggle')) {
                             return;
                         }
@@ -677,7 +375,7 @@
                         cb.className = 'model-checkbox';
                         cb.value = model;
                         cb.dataset.company = company;
-                        // Disattiva di default solo GEMINI 3.0 perché ha dati a zero che sfalsano i grafici
+                        // Disabled by default only GEMINI 3.0 because it has zero data that skews the charts
                         cb.checked = model !== 'GEMINI 3.0';
                         item.appendChild(cb);
                         item.appendChild(document.createTextNode(model));
@@ -685,17 +383,17 @@
                     });
                     group.appendChild(list);
 
-                    // Bulk: spunta azienda -> spunta tutti i modelli
+                    // Bulk: check company -> check all models
                     companyCheckbox.addEventListener('change', (e) => {
                         const checked = e.target.checked;
                         list.querySelectorAll('input.model-checkbox').forEach(cb => {
                             cb.checked = checked;
                         });
-                        // trigger change per ricostruire grafici
+                        // trigger change to rebuild charts
                         filtersContainer.dispatchEvent(new Event('change'));
                     });
 
-                    // Mantieni stato indeterminate per header
+                    // Keep indeterminate state for header
                     const updateCompanyCheckboxState = () => {
                         const cbs = Array.from(list.querySelectorAll('input.model-checkbox'));
                         const numChecked = cbs.filter(cb => cb.checked).length;
@@ -703,7 +401,7 @@
                         companyCheckbox.checked = numChecked === cbs.length;
                     };
                     list.addEventListener('change', updateCompanyCheckboxState);
-                    // Aggiorna lo stato iniziale del checkbox dell'azienda dopo aver creato tutti i modelli
+                    // Update initial state of company checkbox after creating all models
                     updateCompanyCheckboxState();
 
                     filtersContainer.appendChild(group);
@@ -732,7 +430,7 @@
                         chartInstances[key] = null;
                     }
                 });
-                 // Pulisci anche la legenda custom
+                 // Also clean up the custom legend
                 scatterLegendContainer.innerHTML = '';
             }
 
@@ -741,7 +439,7 @@
                 const selectedModels = getSelectedModels();
                 const filteredData = allData.filter(item => selectedModels.includes(item.modello));
                 if (filteredData.length === 0) {
-                    console.warn('Nessun modello selezionato o dati filtrati vuoti.');
+                    console.warn('No model selected or filtered data is empty.');
                     return;
                 }
                 buildMatchingChart(filteredData);
@@ -750,14 +448,14 @@
                 buildCandlestickChart(filteredData);
             }
 
-            // --- Grafici ---
+            // --- Charts ---
             function buildMatchingChart(data) {
                 const sortedData = [...data].sort((a, b) => b.true - a.true);
                 const labels = sortedData.map(item => item.modello);
                 const trueData = sortedData.map(item => item.true);
                 const falseData = sortedData.map(item => item.false);
 
-                // Altezza dinamica per includere tutte le etichette quando mostriamo barre orizzontali
+                // Dynamic height to include all labels when showing horizontal bars
                 const barsCount = Math.max(labels.length, 1);
                 const pixelsPerBar = 28;
                 const minHeightPx = 350;
@@ -785,7 +483,7 @@
                             x: {
                                 stacked: true,
                                 beginAtZero: true,
-                                title: { display: true, text: 'Numero Query' }
+                                title: { display: true, text: 'Number of Queries' }
                             },
                             y: {
                                 stacked: true,
@@ -865,14 +563,14 @@
                                         const similarityText = typeof item.similarity === 'number'
                                             ? `, Sim: ${item.similarity.toFixed(1)}%`
                                             : '';
-                                        return `${item.label} [${item.company}]: (Pot: ${item.x}, Costo: ${Number(item.y).toFixed(2)} €${accuracyText}${similarityText})`;
+                                        return `${item.label} [${item.company}]: (Pot: ${item.x}, Cost: ${Number(item.y).toFixed(2)} €${accuracyText}${similarityText})`;
                                     }
                                 }
                             }
                         },
                         scales: {
-                            x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Potenziale' }, grid: { color: 'rgba(0,0,0,0.05)'} },
-                            y: { beginAtZero: true, title: { display: true, text: 'Costo (€)' }, grid: { color: 'rgba(0,0,0,0.05)'} }
+                            x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Potential' }, grid: { color: 'rgba(0,0,0,0.05)'} },
+                            y: { beginAtZero: true, title: { display: true, text: 'Cost (€)' }, grid: { color: 'rgba(0,0,0,0.05)'} }
                         },
                         animation: { duration: 300 }
                     }
@@ -885,10 +583,10 @@
                 const labels = sortedData.map(item => item.modello);
                 const similaritaData = sortedData.map(item => item.similarita_media);
 
-                // Ridimensiona dinamicamente l'altezza del container per evitare il taglio delle etichette
-                // Altezza per barra (in px) + altezza minima per schermi piccoli
+                // Dynamically resize container height to avoid label clipping
+                // Height per bar (in px) + minimum height for small screens
                 const barsCount = Math.max(labels.length, 1);
-                const pixelsPerBar = 28; // regola se vuoi più/meno spazio verticale per etichetta
+                const pixelsPerBar = 28; // adjust if you want more/less vertical space per label
                 const minHeightPx = 350;
                 const targetHeight = Math.max(minHeightPx, barsCount * pixelsPerBar);
                 ctxSimilarita.canvas.parentNode.style.height = `${targetHeight}px`;
@@ -898,7 +596,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Similarità Media (%)', data: similaritaData,
+                            label: 'Average Similarity (%)', data: similaritaData,
                             backgroundColor: 'rgba(255, 159, 64, 0.7)', borderColor: 'rgba(255, 159, 64, 1)', borderWidth: 1
                         }]
                     },
@@ -906,11 +604,11 @@
                         responsive: true, maintainAspectRatio: false, indexAxis: 'y',
                         plugins: { title: { display: false }, legend: { display: false } },
                         scales: {
-                            x: { beginAtZero: true, title: { display: true, text: 'Similarità Media (%)' } },
+                            x: { beginAtZero: true, title: { display: true, text: 'Average Similarity (%)' } },
                             y: {
                                 grid: { display: false },
                                 ticks: {
-                                    autoSkip: false, // mostra tutte le etichette
+                                    autoSkip: false, // show all labels
                                     font: { size: 11 }
                                 }
                             }
@@ -923,13 +621,13 @@
             function buildCandlestickChart(data) {
                 const sortOrder = sortOrderSelect.value;
 
-                // Calcola la deviazione standard massima per la normalizzazione
+                // Calculate maximum standard deviation for normalization
                 const allDeviazioni = allData
                     .map(d => typeof d.deviazione_std === 'number' ? d.deviazione_std : parseFloat(d.deviazione_std))
                     .filter(d => Number.isFinite(d));
                 const maxDev = Math.max(...allDeviazioni);
 
-                // Ordina i dati in base alla selezione (usando i valori originali)
+                // Sort data based on selection (using original values)
                 const sortedData = [...data].sort((a, b) => {
                     const potA = typeof a.potenziale === 'number' ? a.potenziale : parseFloat(a.potenziale);
                     const potB = typeof b.potenziale === 'number' ? b.potenziale : parseFloat(b.potenziale);
@@ -949,15 +647,15 @@
                     }
                 });
 
-                // Aggiorna titolo del grafico
+                // Update chart title
                 const chartTitle = document.getElementById('candlestickChartTitle');
                 const titleMap = {
-                    'potenziale_asc': 'Variazione Normalizzata (Dev. Std) - Ordinato per Potenziale Crescente',
-                    'potenziale_desc': 'Variazione Normalizzata (Dev. Std) - Ordinato per Potenziale Decrescente',
-                    'deviazione_asc': 'Variazione Normalizzata (Dev. Std) - Ordinato per Dev. Standard Crescente',
-                    'deviazione_desc': 'Variazione Normalizzata (Dev. Std) - Ordinato per Dev. Standard Decrescente'
+                    'potenziale_asc': 'Normalized Variation (Std Dev) - Sorted by Potential Ascending',
+                    'potenziale_desc': 'Normalized Variation (Std Dev) - Sorted by Potential Descending',
+                    'deviazione_asc': 'Normalized Variation (Std Dev) - Sorted by Std Deviation Ascending',
+                    'deviazione_desc': 'Normalized Variation (Std Dev) - Sorted by Std Deviation Descending'
                 };
-                chartTitle.textContent = titleMap[sortOrder] || 'Variazione Normalizzata (Dev. Std)';
+                chartTitle.textContent = titleMap[sortOrder] || 'Normalized Variation (Std Dev)';
 
                 const labels = sortedData.map(item => item.modello);
                 const floatingBarData = [];
@@ -967,33 +665,33 @@
                     const deviazioneStd = typeof item.deviazione_std === 'number' ? item.deviazione_std : parseFloat(item.deviazione_std);
 
                     if (!Number.isFinite(potenziale) || !Number.isFinite(deviazioneStd)) {
-                        return; // Salta dati non validi
+                        return; // Skip invalid data
                     }
 
-                    // Normalizza la deviazione in base alla massima deviazione, per renderla visibile
-                    // La scala è 45 per avere un po' di margine (da 5 a 95)
+                    // Normalize deviation based on maximum deviation, to make it visible
+                    // The scale is 45 to have some margin (from 5 to 95)
                     const deviazioneNorm = maxDev > 0 ? (deviazioneStd / maxDev) * 45 : 0;
 
                     const company = getCompany(item);
                     const color = companyColorMap[company] || companyColorMap['Other'];
 
                     floatingBarData.push({
-                        x: [50 - deviazioneNorm, 50 + deviazioneNorm], // Centrato su 50
+                        x: [50 - deviazioneNorm, 50 + deviazioneNorm], // Centered at 50
                         y: item.modello,
                         company: company,
                         color: color,
                         potenzialeOriginal: potenziale,
                         deviazioneStdOriginal: deviazioneStd,
-                        centroGrafico: 50 // Punto centrale per la linea di mediana
+                        centroGrafico: 50 // Center point for median line
                     });
                 });
 
                 if (floatingBarData.length === 0) {
-                    console.warn('Nessun dato valido per il grafico a barre flottanti.');
+                    console.warn('No valid data for floating bar chart.');
                     return;
                 }
 
-                // Altezza dinamica per includere tutte le etichette
+                // Dynamic height to include all labels
                 const barsCount = Math.max(labels.length, 1);
                 const pixelsPerBar = 28;
                 const minHeightPx = 400;
@@ -1005,7 +703,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Variazione Normalizzata (Dev. Std)',
+                            label: 'Normalized Variation (Std Dev)',
                             data: floatingBarData.map(d => d.x),
                             backgroundColor: floatingBarData.map(d => d.color),
                             borderColor: floatingBarData.map(d => adjustColor(d.color, -30)),
@@ -1028,9 +726,9 @@
                                         const dataPoint = floatingBarData[index];
                                         if (!dataPoint) return '';
                                         return [
-                                            `Azienda: ${dataPoint.company}`,
-                                            `Potenziale (Originale): ${dataPoint.potenzialeOriginal.toLocaleString('it-IT')}`,
-                                            `Dev. Std (Originale): ${dataPoint.deviazioneStdOriginal.toFixed(2)}`
+                                            `Company: ${dataPoint.company}`,
+                                            `Potential (Original): ${dataPoint.potenzialeOriginal.toLocaleString('en-US')}`,
+                                            `Std Dev (Original): ${dataPoint.deviazioneStdOriginal.toFixed(2)}`
                                         ];
                                     }
                                 }
@@ -1040,7 +738,7 @@
                             x: {
                                 min: 0,
                                 max: 100,
-                                title: { display: true, text: 'Variazione Normalizzata (basata su Dev. Std)' },
+                                title: { display: true, text: 'Normalized Variation (based on Std Dev)' },
                                 grid: { color: 'rgba(0,0,0,0.05)' }
                             },
                             y: {
@@ -1082,7 +780,7 @@
                 });
             }
 
-            // --- Helper per disegnare simboli nella legenda ---
+            // --- Helper to draw symbols in legend ---
             function createSymbolCanvas(symbol, color, size = 12) {
                 const canvas = document.createElement('canvas');
                 canvas.width = size;
@@ -1165,7 +863,7 @@
                         ctx.fill();
                         break;
                     default:
-                        // Default a cerchio
+                        // Default to circle
                         ctx.beginPath();
                         ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
                         ctx.fill();
@@ -1174,7 +872,7 @@
                 return canvas;
             }
 
-            // --- Legenda custom (per aziende) ---
+            // --- Custom legend (for companies) ---
             function buildCustomLegend(companies) {
                 scatterLegendContainer.innerHTML = '';
                 const sortedCompanies = Array.from(companies).sort();
@@ -1184,7 +882,7 @@
                     const li = document.createElement('li');
                     li.dataset.company = company;
                     
-                    // Crea canvas con simbolo invece di span semplice
+                    // Create canvas with symbol instead of simple span
                     const symbolCanvas = createSymbolCanvas(symbol, color, 12);
                     symbolCanvas.style.marginRight = '5px';
                     symbolCanvas.style.verticalAlign = 'middle';
@@ -1193,9 +891,9 @@
                     li.appendChild(symbolCanvas);
                     li.appendChild(textNode);
                     
-                    // Rendi cliccabile per toggle highlight
+                    // Make clickable for toggle highlight
                     li.addEventListener('click', () => {
-                        // Trova il pulsante Highlight corrispondente nella sidebar
+                        // Find the corresponding Highlight button in the sidebar
                         const highlightButton = document.querySelector(`.highlight-toggle[data-company="${company}"]`);
                         if (highlightButton) {
                             toggleCompanyHighlight(company, highlightButton);
@@ -1203,7 +901,7 @@
                         }
                     });
                     
-                    // Aggiorna lo stato iniziale
+                    // Update initial state
                     updateLegendItemState(li, company);
                     
                     scatterLegendContainer.appendChild(li);
@@ -1224,7 +922,7 @@
                 });
             }
 
-            // --- Helper colore ---
+            // --- Color helper ---
             function adjustColor(color, amount) {
                 return '#' + color.replace(/^#/, '').replace(/../g, c => ('0'+Math.min(255, Math.max(0, parseInt(c, 16) + amount)).toString(16)).substr(-2));
             }
@@ -1236,7 +934,7 @@
                     highlightedCompanies.add(company);
                 }
                 updateHighlightButtonState(button, company);
-                refreshLegendItems(); // Aggiorna anche la legenda
+                refreshLegendItems(); // Also update the legend
                 ensureHighlightTimer();
             }
 
@@ -1257,7 +955,7 @@
                 highlightedCompanies.clear();
                 stopHighlightTimer();
                 refreshHighlightButtons();
-                refreshLegendItems(); // Aggiorna anche la legenda
+                refreshLegendItems(); // Also update the legend
                 updateScatterHighlight();
             }
 
