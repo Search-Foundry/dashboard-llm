@@ -552,7 +552,25 @@
                         },
                         scales: {
                             x: { type: 'linear', position: 'bottom', title: { display: true, text: 'Potential' }, grid: { color: 'rgba(0,0,0,0.05)'} },
-                            y: { beginAtZero: true, title: { display: true, text: 'Cost (€)' }, grid: { color: 'rgba(0,0,0,0.05)'} }
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Cost (€)' },
+                                grid: { color: 'rgba(0,0,0,0.05)'} ,
+                                ticks: {
+                                    color: (ctx) => {
+                                        const chart = ctx.chart;
+                                        const dataset = chart.data.datasets?.[0];
+                                        if (!dataset) return '#000';
+                                        const label = ctx.tick.label;
+                                        const point = dataset.data.find(p => p.label === label);
+                                        if (!point) return '#000';
+                                        if (highlightedCompanies.has(point.company)) {
+                                            return highlightPulseState ? adjustColor(point.baseColor, 35) : adjustColor(point.baseColor, -35);
+                                        }
+                                        return '#000';
+                                    }
+                                }
+                            }
                         },
                         animation: { duration: 300 }
                     }
@@ -910,36 +928,8 @@
             }
 
             // Plugin to draw model labels on the scatter chart and make them flash when highlighted
-            const labelPlugin = {
-                id: 'labelPlugin',
-                afterDatasetsDraw(chart) {
-                    const ctx = chart.ctx;
-                    const dataset = chart.data.datasets?.[0];
-                    if (!dataset) return;
-                    const meta = chart.getDatasetMeta(0);
-                    const points = meta.data;
-                    ctx.save();
-                    ctx.font = '12px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'bottom';
-                    points.forEach((point, idx) => {
-                        const dataPoint = dataset.data[idx];
-                        const label = dataPoint.label;
-                        const x = point.x;
-                        const y = point.y - 8; // slightly above the point
-                        // Determine color: base color or flashing highlight
-                        let fillColor = dataPoint.baseColor;
-                        if (highlightedCompanies.has(dataPoint.company)) {
-                            fillColor = highlightPulseState ? adjustColor(dataPoint.baseColor, 35) : adjustColor(dataPoint.baseColor, -35);
-                        }
-                        ctx.fillStyle = fillColor;
-                        ctx.fillText(label, x, y);
-                    });
-                    ctx.restore();
-                }
-            };
-            // Register the plugin
-            Chart.register(labelPlugin);
+            // The label plugin was removed to avoid overlapping model names on the scatter chart.
+            // Axis tick labels will be colored via the y‑axis tick callback instead.
 
 
             function toggleCompanyHighlight(company, button) {
