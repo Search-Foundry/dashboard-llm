@@ -21,7 +21,8 @@
     "percent_true": 67.97,
     "similarita_media": 82.45,
     "deviazione_std": 27.04,
-    "potenziale": 25230
+    "potenziale": 25230,
+    "disabled": 1
   },
   {
     "modello": "MISTRAL NEMO",
@@ -69,7 +70,8 @@
     "percent_true": 58.33,
     "similarita_media": 78.78,
     "deviazione_std": 27.93,
-    "potenziale": 24580
+    "potenziale": 24580,
+    "disabled": 1
   },
   {
     "modello": "CLAUDE 3.5 SONNET",
@@ -165,7 +167,8 @@
     "percent_true": 85.54,
     "similarita_media": 93.23,
     "deviazione_std": 17.69,
-    "potenziale": 30300
+    "potenziale": 30300,
+    "disabled": 1
   },
   {
     "modello": "GPT4o",
@@ -309,7 +312,8 @@
     "percent_true": 79.38,
     "similarita_media": 78.18,
     "deviazione_std": 31.09,
-    "potenziale": 27820
+    "potenziale": 27820,
+    "disabled": 1
   },
   {
     "modello": "MISTRAL MEDIUM 3.1",
@@ -333,7 +337,8 @@
     "percent_true": 55.11,
     "similarita_media": 75.7,
     "deviazione_std": 28.2,
-    "potenziale": 24450
+    "potenziale": 24450,
+    "disabled": 1
   },
   {
     "modello": "DEEPSEEK V3.1",
@@ -393,7 +398,8 @@
     "percent_true": 69.72,
     "similarita_media": 77.57,
     "deviazione_std": 37.56,
-    "potenziale": 24590
+    "potenziale": 24590,
+    "disabled": 1
   },
   {
     "modello": "GEMINI 2.5 Lite",
@@ -417,7 +423,8 @@
     "percent_true": 84.31,
     "similarita_media": 92.8,
     "deviazione_std": 17.85,
-    "potenziale": 30160
+    "potenziale": 30160,
+    "disabled": 1
   },
   {
     "modello": "GRANITE 4",
@@ -429,7 +436,8 @@
     "percent_true": 52.62,
     "similarita_media": 73.26,
     "deviazione_std": 31.4,
-    "potenziale": 23810
+    "potenziale": 23810,
+    "disabled": 1
   },
   {
     "modello": "GPT 5.1-chat",
@@ -453,7 +461,8 @@
     "percent_true": 85.85,
     "similarita_media": 93.94,
     "deviazione_std": 16.05,
-    "potenziale": 30530
+    "potenziale": 30530,
+    "disabled": 1
   },
   {
     "modello": "Sherlock-think",
@@ -465,7 +474,8 @@
     "percent_true": 82.77,
     "similarita_media": 92.25,
     "deviazione_std": 18.08,
-    "potenziale": 29980
+    "potenziale": 29980,
+    "disabled": 1
   },
   {
     "modello": "Grok 4.1 fast",
