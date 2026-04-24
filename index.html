@@ -107,6 +107,7 @@
 
             // --- Data and State ---
             let allData = [];
+            const modelToCompanyMap = new Map(); // Map model names to their company
             let chartInstances = {}; // To keep track of active charts and destroy them
             const highlightedCompanies = new Set(); // Companies with active highlight
             let highlightIntervalId = null;
@@ -262,6 +263,15 @@
                     return;
                 }
                 allData = data.filter(row => Object.values(row).some(x => x !== null && x !== ''));
+                
+                // Build the model to company mapping
+                modelToCompanyMap.clear();
+                allData.forEach(item => {
+                    if (item.modello) {
+                        modelToCompanyMap.set(item.modello, getCompany(item));
+                    }
+                });
+
                 if (allData.length === 0) {
                     alert("The JSON file is empty or contains no valid data.");
                     manualUploadSection.style.display = 'block';
@@ -472,7 +482,26 @@
                             y: {
                                 stacked: true,
                                 grid: { display: false },
-                                ticks: { autoSkip: false, font: { size: 11 } }
+                                ticks: { 
+                                    autoSkip: false, 
+                                    font: (ctx) => {
+                                        const model = ctx.tick.label;
+                                        const company = modelToCompanyMap.get(model);
+                                        const isHighlighted = highlightedCompanies.has(company);
+                                        return { 
+                                            size: 11,
+                                            weight: isHighlighted ? 'bold' : 'normal'
+                                        };
+                                    },
+                                    color: (ctx) => {
+                                        const model = ctx.tick.label;
+                                        const company = modelToCompanyMap.get(model);
+                                        const isHighlighted = highlightedCompanies.has(company);
+                                        if (!isHighlighted) return '#333';
+                                        const color = companyColorMap[company] || companyColorMap['Other'];
+                                        return highlightPulseState ? adjustColor(color, 35) : adjustColor(color, -35);
+                                    }
+                                }
                             }
                         },
                         animation: { duration: 300 }
@@ -611,7 +640,23 @@
                                 grid: { display: false },
                                 ticks: {
                                     autoSkip: false, // show all labels
-                                    font: { size: 11 }
+                                    font: (ctx) => {
+                                        const model = ctx.tick.label;
+                                        const company = modelToCompanyMap.get(model);
+                                        const isHighlighted = highlightedCompanies.has(company);
+                                        return { 
+                                            size: 11,
+                                            weight: isHighlighted ? 'bold' : 'normal'
+                                        };
+                                    },
+                                    color: (ctx) => {
+                                        const model = ctx.tick.label;
+                                        const company = modelToCompanyMap.get(model);
+                                        const isHighlighted = highlightedCompanies.has(company);
+                                        if (!isHighlighted) return '#333';
+                                        const color = companyColorMap[company] || companyColorMap['Other'];
+                                        return highlightPulseState ? adjustColor(color, 35) : adjustColor(color, -35);
+                                    }
                                 }
                             }
                         },
@@ -747,7 +792,23 @@
                                 grid: { display: false },
                                 ticks: {
                                     autoSkip: false,
-                                    font: { size: 11 }
+                                    font: (ctx) => {
+                                        const model = ctx.tick.label;
+                                        const company = modelToCompanyMap.get(model);
+                                        const isHighlighted = highlightedCompanies.has(company);
+                                        return { 
+                                            size: 11,
+                                            weight: isHighlighted ? 'bold' : 'normal'
+                                        };
+                                    },
+                                    color: (ctx) => {
+                                        const model = ctx.tick.label;
+                                        const company = modelToCompanyMap.get(model);
+                                        const isHighlighted = highlightedCompanies.has(company);
+                                        if (!isHighlighted) return '#333';
+                                        const color = companyColorMap[company] || companyColorMap['Other'];
+                                        return highlightPulseState ? adjustColor(color, 35) : adjustColor(color, -35);
+                                    }
                                 }
                             }
                         },
@@ -963,11 +1024,11 @@
                 stopHighlightTimer();
                 refreshHighlightButtons();
                 refreshLegendItems(); // Also update the legend
-                updateScatterHighlight();
+                updateAllHighlights();
             }
 
             function ensureHighlightTimer() {
-                const hasHighlightedPoints = updateScatterHighlight();
+                const hasHighlightedPoints = updateAllHighlights();
                 if (highlightedCompanies.size === 0 || !hasHighlightedPoints) {
                     stopHighlightTimer();
                     return;
@@ -975,7 +1036,7 @@
                 if (!highlightIntervalId) {
                     highlightIntervalId = setInterval(() => {
                         highlightPulseState = !highlightPulseState;
-                        updateScatterHighlight();
+                        updateAllHighlights();
                     }, 500);
                 }
             }
@@ -990,34 +1051,41 @@
                 }
             }
 
-            function updateScatterHighlight() {
-                const chart = chartInstances.potenzialeCosto;
-                if (!chart) return false;
-                const dataset = chart.data.datasets?.[0];
-                if (!dataset || !Array.isArray(dataset.data)) return false;
-
+            function updateAllHighlights() {
+                // Update Potential vs Cost (Scatter)
+                const scatterChart = chartInstances.potenzialeCosto;
                 let hasHighlightedPoint = false;
+                if (scatterChart) {
+                    const dataset = scatterChart.data.datasets?.[0];
+                    if (dataset && Array.isArray(dataset.data)) {
+                        dataset.pointRadius = dataset.data.map(point => {
+                            const isHighlighted = highlightedCompanies.has(point.company);
+                            if (isHighlighted) hasHighlightedPoint = true;
+                            if (!isHighlighted) return point.baseRadius;
+                            const pulseOffset = highlightPulseState ? 3 : 1;
+                            return point.baseRadius + pulseOffset;
+                        });
+                        dataset.pointBackgroundColor = dataset.data.map(point => {
+                            if (!highlightedCompanies.has(point.company)) return point.baseColor;
+                            return highlightPulseState ? adjustColor(point.baseColor, 35) : adjustColor(point.baseColor, -35);
+                        });
+                        dataset.pointBorderColor = dataset.data.map(point => {
+                            if (!highlightedCompanies.has(point.company)) return point.baseBorderColor;
+                            return highlightPulseState ? adjustColor(point.baseBorderColor, 35) : adjustColor(point.baseBorderColor, -35);
+                        });
+                        dataset.pointBorderWidth = dataset.data.map(point => {
+                            if (!highlightedCompanies.has(point.company)) return point.baseBorderWidth;
+                            return highlightPulseState ? point.baseBorderWidth + 1 : point.baseBorderWidth + 0.5;
+                        });
+                        scatterChart.update('none');
+                    }
+                }
 
-                dataset.pointRadius = dataset.data.map(point => {
-                    const isHighlighted = highlightedCompanies.has(point.company);
-                    if (isHighlighted) hasHighlightedPoint = true;
-                    if (!isHighlighted) return point.baseRadius;
-                    const pulseOffset = highlightPulseState ? 3 : 1;
-                    return point.baseRadius + pulseOffset;
-                });
-                dataset.pointBackgroundColor = dataset.data.map(point => {
-                    if (!highlightedCompanies.has(point.company)) return point.baseColor;
-                    return highlightPulseState ? adjustColor(point.baseColor, 35) : adjustColor(point.baseColor, -35);
-                });
-                dataset.pointBorderColor = dataset.data.map(point => {
-                    if (!highlightedCompanies.has(point.company)) return point.baseBorderColor;
-                    return highlightPulseState ? adjustColor(point.baseBorderColor, 35) : adjustColor(point.baseBorderColor, -35);
-                });
-                dataset.pointBorderWidth = dataset.data.map(point => {
-                    if (!highlightedCompanies.has(point.company)) return point.baseBorderWidth;
-                    return highlightPulseState ? point.baseBorderWidth + 1 : point.baseBorderWidth + 0.5;
-                });
-                chart.update('none');
+                // Update other charts (their ticks use dynamic callbacks)
+                if (chartInstances.matching) chartInstances.matching.update('none');
+                if (chartInstances.similarita) chartInstances.similarita.update('none');
+                if (chartInstances.candlestick) chartInstances.candlestick.update('none');
+
                 return hasHighlightedPoint;
             }
 
