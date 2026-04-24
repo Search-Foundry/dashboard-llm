@@ -357,8 +357,10 @@
                         cb.className = 'model-checkbox';
                         cb.value = model;
                         cb.dataset.company = company;
-                        // Disabled by default only GEMINI 3.0 because it has zero data that skews the charts
-                        cb.checked = model !== 'GEMINI 3.0';
+                        // Disabled based on the "disabled" flag in the data (1 = off by default)
+                        const modelData = allData.find(d => d.modello === model);
+                        const isDisabled = modelData && modelData.disabled === 1;
+                        cb.checked = !isDisabled;
                         item.appendChild(cb);
                         item.appendChild(document.createTextNode(model));
                         list.appendChild(item);

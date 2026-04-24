@@ -501,7 +501,8 @@
     "percent_true": 0.0,
     "similarita_media": 0.0,
     "deviazione_std": 0.0,
-    "potenziale": 0
+    "potenziale": 0,
+    "disabled": 1
   },
   {
     "modello": "MISTRAL LARGE 2512",
