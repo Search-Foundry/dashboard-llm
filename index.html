@@ -909,6 +909,39 @@
                 return '#' + color.replace(/^#/, '').replace(/../g, c => ('0'+Math.min(255, Math.max(0, parseInt(c, 16) + amount)).toString(16)).substr(-2));
             }
 
+            // Plugin to draw model labels on the scatter chart and make them flash when highlighted
+            const labelPlugin = {
+                id: 'labelPlugin',
+                afterDatasetsDraw(chart) {
+                    const ctx = chart.ctx;
+                    const dataset = chart.data.datasets?.[0];
+                    if (!dataset) return;
+                    const meta = chart.getDatasetMeta(0);
+                    const points = meta.data;
+                    ctx.save();
+                    ctx.font = '12px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    points.forEach((point, idx) => {
+                        const dataPoint = dataset.data[idx];
+                        const label = dataPoint.label;
+                        const x = point.x;
+                        const y = point.y - 8; // slightly above the point
+                        // Determine color: base color or flashing highlight
+                        let fillColor = dataPoint.baseColor;
+                        if (highlightedCompanies.has(dataPoint.company)) {
+                            fillColor = highlightPulseState ? adjustColor(dataPoint.baseColor, 35) : adjustColor(dataPoint.baseColor, -35);
+                        }
+                        ctx.fillStyle = fillColor;
+                        ctx.fillText(label, x, y);
+                    });
+                    ctx.restore();
+                }
+            };
+            // Register the plugin
+            Chart.register(labelPlugin);
+
+
             function toggleCompanyHighlight(company, button) {
                 if (highlightedCompanies.has(company)) {
                     highlightedCompanies.delete(company);
