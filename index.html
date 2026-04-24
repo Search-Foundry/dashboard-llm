@@ -26,8 +26,8 @@
 
             <!-- Manual Data Upload Section -->
             <div id="manualUploadSection" style="display: none; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
-                <p style="color: #e74c3c; font-weight: bold;">Auto data loading failed. Select the 'dati.csv' file to start loading immediately:</p>
-                <input type="file" id="csvFileInput" accept=".csv">
+                <p style="color: #e74c3c; font-weight: bold;">Auto data loading failed. Select the 'dati.json' file to start loading immediately:</p>
+                <input type="file" id="jsonFileInput" accept=".json">
             </div>
 
             <!-- Tabs Section -->
@@ -89,7 +89,7 @@
     <!-- Dataset JSON (no longer used, left for reference) -->
     <script type="application/json" id="modelData">[]</script>
 
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <!-- PapaParse removed, using native JSON now -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- DOM Elements ---
@@ -102,7 +102,7 @@
             const ctxCandlestick = document.getElementById('chartCandlestick').getContext('2d');
             const scatterLegendContainer = document.getElementById('scatterLegend'); // Custom legend container
             const manualUploadSection = document.getElementById('manualUploadSection');
-            const csvFileInput = document.getElementById('csvFileInput');
+            const jsonFileInput = document.getElementById('jsonFileInput');
             const sortOrderSelect = document.getElementById('sortOrderSelect');
 
             // --- Data and State ---
@@ -211,7 +211,7 @@
             // --- Initialization ---
             try {
                 loadData();
-                csvFileInput.addEventListener('change', handleManualUpload);
+                jsonFileInput.addEventListener('change', handleManualUpload);
             } catch (error) {
                 console.error("Error during initialization:", error);
                 alert("Unable to load data or initialize the dashboard.");
@@ -220,72 +220,54 @@
             // --- Data loading ---
             async function loadData() {
                 try {
-                    const response = await fetch('dati.csv');
+                    const response = await fetch('dati.json');
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    const csvText = await response.text();
-                    parseCsvData(csvText);
+                    const data = await response.json();
+                    validateAndSetData(data);
                 } catch (error) {
-                    console.warn("Unable to load dati.csv automatically. Enabling manual upload.", error);
+                    console.warn("Unable to load dati.json automatically. Enabling manual upload.", error);
                     manualUploadSection.style.display = 'block';
                 }
             }
 
             function handleManualUpload() {
-                const file = csvFileInput.files[0];
+                const file = jsonFileInput.files[0];
                 if (file) {
-                    Papa.parse(file, {
-                        header: true,
-                        dynamicTyping: true,
-                        complete: function(results) {
-                            if (results.errors.length) {
-                                console.error("Error parsing CSV:", results.errors);
-                                alert("Error parsing CSV file. Check the format.");
-                                return;
-                            }
-                            allData = results.data.filter(row => Object.values(row).some(x => x !== null && x !== '')); // Filter empty rows
-                            if (allData.length === 0) {
-                                alert("The uploaded CSV file is empty or contains no valid data.");
-                                return;
-                            }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            validateAndSetData(data);
                             manualUploadSection.style.display = 'none';
-                            initializeDashboard();
-                        },
-                        error: function(err) {
-                            console.error("Error reading file:", err);
-                            alert("Error reading file.");
+                        } catch (err) {
+                            console.error("Error parsing JSON:", err);
+                            alert("Error parsing JSON file. Check the format.");
                         }
-                    });
+                    };
+                    reader.onerror = function() {
+                        alert("Error reading file.");
+                    };
+                    reader.readAsText(file);
                 } else {
-                    alert("Select a CSV file before loading.");
+                    alert("Select a JSON file before loading.");
                 }
             }
 
-            function parseCsvData(csvText) {
-                Papa.parse(csvText, {
-                    header: true,
-                    dynamicTyping: true,
-                    complete: function(results) {
-                        if (results.errors.length) {
-                            console.error("Error parsing CSV:", results.errors);
-                            alert("Error parsing CSV file. Check the format.");
-                            return;
-                        }
-                        allData = results.data.filter(row => Object.values(row).some(x => x !== null && x !== ''));
-                        if (allData.length === 0) {
-                            alert("The CSV file is empty or contains no valid data.");
-                            manualUploadSection.style.display = 'block';
-                            return;
-                        }
-                        initializeDashboard();
-                    },
-                    error: function(err) {
-                        console.error("Error parsing CSV:", err);
-                        alert("Error parsing automatically loaded CSV.");
-                        manualUploadSection.style.display = 'block';
-                    }
-                });
+            function validateAndSetData(data) {
+                if (!Array.isArray(data) || data.length === 0) {
+                    alert("The JSON file is empty or contains no valid data.");
+                    manualUploadSection.style.display = 'block';
+                    return;
+                }
+                allData = data.filter(row => Object.values(row).some(x => x !== null && x !== ''));
+                if (allData.length === 0) {
+                    alert("The JSON file is empty or contains no valid data.");
+                    manualUploadSection.style.display = 'block';
+                    return;
+                }
+                initializeDashboard();
             }
 
             function initializeDashboard() {

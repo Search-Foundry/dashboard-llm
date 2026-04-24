@@ -4,14 +4,14 @@
 
 ---
 
-Dashboard interattiva (HTML + JS) per visualizzare `dati.csv` con Chart.js.
+Dashboard interattiva (HTML + JS) per visualizzare `dati.json` con Chart.js.
 
 L'analisi deriva dal progetto "Clusterizza e misura" (`https://github.com/Search-Foundry/aicategorizer`).
 
 ## Requisiti
 
 - Qualsiasi browser moderno (Chrome/Edge/Firefox/Safari)
-- Opzionale: un semplice server statico locale. È utile solo se vuoi l'auto-caricamento di `dati.csv` via `fetch`.
+- Opzionale: un semplice server statico locale. È utile solo se vuoi l'auto-caricamento di `dati.json` via `fetch`.
 
 ## Preview
 
@@ -24,12 +24,12 @@ https://search-foundry.github.io/dashboard-llm/
 
 1) Clona o scarica la repo.
 
-2) Avvio rapido senza server (consigliato se vuoi solo visualizzare un CSV locale):
+2) Avvio rapido senza server (consigliato se vuoi solo visualizzare un JSON locale):
 
    - Apri il file `index.html` direttamente nel browser (doppio click).
-   - Clicca su "Carica CSV" e seleziona `dati.csv` (o un tuo CSV con lo stesso schema).
+   - Clicca su "Carica JSON" e seleziona `dati.json` (o un tuo JSON con lo stesso schema).
 
-   Oppure, se preferisci l'auto-caricamento di `dati.csv`:
+   Oppure, se preferisci l'auto-caricamento di `dati.json`:
 
    - Avvia un server statico nella cartella del progetto.
      - Con Python 3:
@@ -51,12 +51,12 @@ https://search-foundry.github.io/dashboard-llm/
 
 ## Aggiornare i dati
 
-- Sostituisci il file `dati.csv` mantenendo l'intestazione di colonne attesa dalla pagina.
-- Se l'auto-caricamento fallisce o non usi un server, usa il caricamento manuale: pulsante "Carica CSV".
+- Sostituisci il file `dati.json` mantenendo la struttura attesa dalla pagina.
+- Se l'auto-caricamento fallisce o non usi un server, usa il caricamento manuale: pulsante "Carica JSON".
 
 ## Formato dati (minimo indispensabile)
 
-La dashboard si aspetta colonne con questi nomi:
+La dashboard si aspetta oggetti con questi campi:
 
 - `modello` — nome del modello
 - `azienda` — vendor/azienda del modello
@@ -73,7 +73,7 @@ Nota: eventuali colonne extra vengono ignorate. Righe completamente vuote vengon
 
 ## Troubleshooting veloce
 
-- Apri via `file://` e non vedi dati? Usa "Carica CSV" per selezionare il file.
+- Apri via `file://` e non vedi dati? Usa "Carica JSON" per selezionare il file.
 - Vuoi evitare di selezionare manualmente il file ad ogni avvio? Usa un server locale come indicato sopra.
 - Etichette che non si vedono? I grafici gestiscono l'altezza dinamicamente e non saltano più i tick; assicurati che il container non sia limitato da CSS esterno.
 

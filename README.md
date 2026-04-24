@@ -4,14 +4,14 @@
 
 ---
 
-Interactive dashboard (HTML + JS) to visualize `dati.csv` with Chart.js.
+Interactive dashboard (HTML + JS) to visualize `dati.json` with Chart.js.
 
 The analysis comes from the "Clusterizza e misura" project (`https://github.com/Search-Foundry/aicategorizer`).
 
 ## Requirements
 
 - Any modern browser (Chrome/Edge/Firefox/Safari)
-- Optional: a simple local static server. Only useful if you want auto-loading of `dati.csv` via `fetch`.
+- Optional: a simple local static server. Only useful if you want auto-loading of `dati.json` via `fetch`.
 
 ## Preview
 
@@ -22,12 +22,12 @@ https://search-foundry.github.io/dashboard-llm/
 
 1) Clone or download the repo.
 
-2) Quick start without a server (recommended if you just want to view a local CSV):
+2) Quick start without a server (recommended if you just want to view a local JSON):
 
    - Open the `index.html` file directly in the browser (double click).
-   - Click on "Load CSV" and select `dati.csv` (or your own CSV with the same schema).
+   - Click on "Load JSON" and select `dati.json` (or your own JSON with the same schema).
 
-   Alternatively, if you prefer auto-loading of `dati.csv`:
+   Alternatively, if you prefer auto-loading of `dati.json`:
 
    - Start a static server in the project folder.
      - With Python 3:
@@ -49,12 +49,12 @@ https://search-foundry.github.io/dashboard-llm/
 
 ## Updating the data
 
-- Replace the `dati.csv` file while keeping the column headers expected by the page.
-- If auto-loading fails or you're not using a server, use manual upload: "Load CSV" button.
+- Replace the `dati.json` file while keeping the expected structure.
+- If auto-loading fails or you're not using a server, use manual upload: "Load JSON" button.
 
 ## Data format (minimum required)
 
-The dashboard expects columns with these names:
+The dashboard expects objects with these fields:
 
 - `modello` — model name
 - `azienda` — model vendor/company
@@ -71,7 +71,7 @@ Note: extra columns are ignored. Completely empty rows are discarded.
 
 ## Quick Troubleshooting
 
-- Opening via `file://` and not seeing data? Use "Load CSV" to select the file.
+- Opening via `file://` and not seeing data? Use "Load JSON" to select the file.
 - Want to avoid manually selecting the file at each startup? Use a local server as indicated above.
 - Labels not visible? Charts dynamically manage height and no longer skip ticks; make sure the container is not limited by external CSS.
 
