@@ -234,7 +234,32 @@ function buildPotenzialeCostoChart(data) {
                     }
                 }
             },
-            animation: { duration: 300 }
+            animation: { duration: 300 },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    const index = elements[0].index;
+                    const datasetIndex = elements[0].datasetIndex;
+                    const pointData = state.chartInstances.potenzialeCosto.data.datasets[datasetIndex].data[index];
+                    const modelName = pointData.label;
+                    
+                    const checkbox = document.querySelector(`input.model-checkbox[value="${modelName}"]`);
+                    if (checkbox) {
+                        checkbox.checked = false;
+                        state.dom.filtersContainer.dispatchEvent(new Event('change'));
+                        
+                        const companyGroup = checkbox.closest('.company-group');
+                        if (companyGroup) {
+                            const companyCheckbox = companyGroup.querySelector('.company-checkbox');
+                            if (companyCheckbox) {
+                                const modelCbs = Array.from(companyGroup.querySelectorAll('input.model-checkbox'));
+                                const numChecked = modelCbs.filter(cb => cb.checked).length;
+                                companyCheckbox.indeterminate = numChecked > 0 && numChecked < modelCbs.length;
+                                companyCheckbox.checked = numChecked === modelCbs.length;
+                            }
+                        }
+                    }
+                }
+            }
         }
     });
     ensureHighlightTimer();
@@ -474,6 +499,11 @@ function updateAllHighlights() {
                 const isHighlighted = state.highlightedCompanies.has(point.company);
                 if (isHighlighted) hasHighlightedPoint = true;
                 if (!isHighlighted) return point.baseRadius;
+                
+                // If it's a logo and we're in the "on" state, use a larger radius for the 20x20 canvas
+                if (state.imagesInverted[point.company] && state.highlightPulseState) {
+                    return 10; // Fits the 20x20 canvas perfectly
+                }
                 const pulseOffset = state.highlightPulseState ? 3 : 1;
                 return point.baseRadius + pulseOffset;
             });
@@ -488,6 +518,14 @@ function updateAllHighlights() {
             dataset.pointBorderWidth = dataset.data.map(point => {
                 if (!state.highlightedCompanies.has(point.company)) return point.baseBorderWidth;
                 return state.highlightPulseState ? point.baseBorderWidth + 1 : point.baseBorderWidth + 0.5;
+            });
+            dataset.pointStyle = dataset.data.map(point => {
+                const isHighlighted = state.highlightedCompanies.has(point.company);
+                // If it's a logo and we are in the pulse "on" state, use the inverted version
+                if (isHighlighted && state.highlightPulseState && state.imagesInverted[point.company]) {
+                    return state.imagesInverted[point.company];
+                }
+                return point.baseSymbol;
             });
             scatterChart.update('none');
         }

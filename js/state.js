@@ -7,6 +7,7 @@ const state = {
     highlightPulseState: false,
     filtersChangeBound: false,
     images: {}, // To store preloaded company logos
+    imagesInverted: {}, // To store inverted company logos
     
     // DOM Elements
     dom: {

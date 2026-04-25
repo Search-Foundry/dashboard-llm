@@ -38,9 +38,28 @@ async function preloadLogos() {
                 
                 // Draw the image resized to 16x16
                 ctx.drawImage(img, 0, 0, size, size);
-                
-                // Store the canvas as the image to be used by Chart.js
                 state.images[company] = canvas;
+
+                // Create an inverted version for the highlight flash
+                // We make it slightly larger (20x20) and add a background 
+                // to make it visible even with transparency
+                const invSize = 20;
+                const invCanvas = document.createElement('canvas');
+                invCanvas.width = invSize;
+                invCanvas.height = invSize;
+                const invCtx = invCanvas.getContext('2d');
+                
+                // Add a white background circle to make the "negative" effect pop
+                invCtx.fillStyle = 'white';
+                invCtx.beginPath();
+                invCtx.arc(invSize/2, invSize/2, invSize/2, 0, Math.PI * 2);
+                invCtx.fill();
+                
+                invCtx.filter = 'invert(1)';
+                // Center the 16x16 logo in the 20x20 canvas
+                invCtx.drawImage(img, (invSize - size) / 2, (invSize - size) / 2, size, size);
+                state.imagesInverted[company] = invCanvas;
+
                 resolve();
             };
             img.onerror = () => {

@@ -12,6 +12,8 @@ const companyColorMap = {
     'Xai': '#c0392b',              // Dark red
     'Minimax': '#8e44ad',          // Dark purple
     'IBM': '#d35400',              // Burnt orange
+    'Moonshot': '#1abc9c',         // Turquoise
+    'InceptionLAbs': '#f1c40f',    // Yellow
     'Other': '#2c3e50'             // Blue gray dark
 };
 
@@ -28,6 +30,8 @@ const companySymbolMap = {
     'Hidden': 'circle',            // Circle
     'Xai': 'crossRot',             // Rotated cross
     'Minimax': 'rectRounded',      // Rounded square
+    'Moonshot': 'star',            // Star
+    'InceptionLAbs': 'rect',       // Square
     'IBM': 'circle',               // Circle
     'Other': 'triangle'           // Triangle
 };
