@@ -1,8 +1,8 @@
-export function getCompany(item) {
+function getCompany(item) {
     return (item.azienda && String(item.azienda).trim()) || 'Other';
 }
 
-export function getAccuracyPercentage(item) {
+function getAccuracyPercentage(item) {
     if (typeof item.percent_true === 'number') {
         return item.percent_true;
     }
@@ -16,7 +16,7 @@ export function getAccuracyPercentage(item) {
     return null;
 }
 
-export function groupBy(array, keyGetter) {
+function groupBy(array, keyGetter) {
     const map = {};
     array.forEach((item) => {
         const key = keyGetter(item) || 'Other';
@@ -26,11 +26,11 @@ export function groupBy(array, keyGetter) {
     return map;
 }
 
-export function adjustColor(color, amount) {
+function adjustColor(color, amount) {
     return '#' + color.replace(/^#/, '').replace(/../g, c => ('0'+Math.min(255, Math.max(0, parseInt(c, 16) + amount)).toString(16)).substr(-2));
 }
 
-export function createSymbolCanvas(symbol, color, size = 12) {
+function createSymbolCanvas(symbol, color, size = 12) {
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;

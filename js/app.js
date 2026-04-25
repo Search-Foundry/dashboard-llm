@@ -1,8 +1,3 @@
-import { state } from './state.js';
-import { getCompany } from './utils.js';
-import { buildCharts } from './charts.js';
-import { buildFilters, setupTabs, resetHighlights } from './ui.js';
-
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     state.dom.filtersContainer = document.getElementById('filters');
@@ -19,13 +14,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initialization ---
     try {
-        loadData();
+        preloadLogos().then(() => {
+            loadData();
+        });
         state.dom.jsonFileInput.addEventListener('change', handleManualUpload);
     } catch (error) {
         console.error("Error during initialization:", error);
         alert("Unable to load data or initialize the dashboard.");
     }
 });
+
+async function preloadLogos() {
+    const promises = Object.entries(companyLogoMap).map(([company, url]) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                // Create a small canvas to force the size to 16x16
+                const size = 16;
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw the image resized to 16x16
+                ctx.drawImage(img, 0, 0, size, size);
+                
+                // Store the canvas as the image to be used by Chart.js
+                state.images[company] = canvas;
+                resolve();
+            };
+            img.onerror = () => {
+                console.warn(`Unable to load logo for ${company}: ${url}`);
+                resolve();
+            };
+            img.src = url;
+        });
+    });
+    return Promise.all(promises);
+}
 
 async function loadData() {
     try {

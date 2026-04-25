@@ -1,7 +1,3 @@
-import { state } from './state.js';
-import { companyColorMap, companySymbolMap, ACCURACY_THRESHOLD, POTENZIALE_THRESHOLD, POTENZIALE_THRESHOLD_LABEL } from './config.js';
-import { getCompany, getAccuracyPercentage, adjustColor } from './utils.js';
-
 const potenzialeThresholdPlugin = {
     id: 'potenzialeThresholdLine',
     afterDatasetsDraw(chart, args, pluginOptions) {
@@ -44,7 +40,7 @@ if (typeof Chart !== 'undefined') {
     Chart.register(potenzialeThresholdPlugin);
 }
 
-export function destroyCharts() {
+function destroyCharts() {
     stopHighlightTimer();
     Object.keys(state.chartInstances).forEach(key => {
         if (state.chartInstances[key]) {
@@ -56,9 +52,7 @@ export function destroyCharts() {
     state.dom.scatterLegendContainer.innerHTML = '';
 }
 
-import { stopHighlightTimer, ensureHighlightTimer, buildCustomLegend } from './ui.js';
-
-export function buildCharts() {
+function buildCharts() {
     destroyCharts();
     const selectedModels = getSelectedModels();
     const filteredData = state.allData.filter(item => selectedModels.includes(item.modello));
@@ -76,7 +70,7 @@ function getSelectedModels() {
     return Array.from(document.querySelectorAll('input.model-checkbox:checked')).map(cb => cb.value);
 }
 
-export function buildMatchingChart(data) {
+function buildMatchingChart(data) {
     const sortedData = [...data].sort((a, b) => b.true - a.true);
     const labels = sortedData.map(item => item.modello);
     const trueData = sortedData.map(item => item.true);
@@ -141,20 +135,25 @@ export function buildMatchingChart(data) {
     });
 }
 
-export function buildPotenzialeCostoChart(data) {
+function buildPotenzialeCostoChart(data) {
     const scatterData = [];
     const companiesPresent = new Set();
 
     data.forEach(item => {
         const company = getCompany(item);
         const color = companyColorMap[company] || companyColorMap['Other'];
+        const logo = state.images[company];
         const symbol = companySymbolMap[company] || companySymbolMap['Other'];
+        
         const accuracy = getAccuracyPercentage(item);
-        const baseRadius = accuracy !== null && accuracy >= ACCURACY_THRESHOLD ? 9 : 7;
-        const baseBorderWidth = accuracy !== null && accuracy >= ACCURACY_THRESHOLD ? 2.5 : 1.5;
+        const isTopAccuracy = accuracy !== null && accuracy >= ACCURACY_THRESHOLD;
+        const baseRadius = isTopAccuracy ? 9 : 7;
+        const baseBorderWidth = isTopAccuracy ? 2.5 : 1.5;
+        
         const similarityValue = typeof item.similarita_media === 'number'
             ? item.similarita_media
             : parseFloat(item.similarita_media);
+            
         scatterData.push({
             x: item.potenziale,
             y: item.costo_euro,
@@ -162,10 +161,10 @@ export function buildPotenzialeCostoChart(data) {
             company: company,
             baseColor: color,
             baseBorderColor: adjustColor(color, -20),
-            baseSymbol: symbol,
+            baseSymbol: logo || symbol, // Use logo canvas if available, otherwise symbol string
             accuracy: accuracy,
             similarity: Number.isFinite(similarityValue) ? similarityValue : null,
-            baseRadius,
+            baseRadius: logo ? 8 : baseRadius, // Radius 8 for 16x16 canvas
             baseBorderWidth
         });
         companiesPresent.add(company);
@@ -241,7 +240,7 @@ export function buildPotenzialeCostoChart(data) {
     ensureHighlightTimer();
 }
 
-export function buildSimilaritaChart(data) {
+function buildSimilaritaChart(data) {
     const sortedData = [...data].sort((a, b) => b.similarita_media - a.similarita_media);
     const labels = sortedData.map(item => item.modello);
     const similaritaData = sortedData.map(item => item.similarita_media);
@@ -295,7 +294,7 @@ export function buildSimilaritaChart(data) {
     });
 }
 
-export function buildCandlestickChart(data) {
+function buildCandlestickChart(data) {
     const sortOrder = state.dom.sortOrderSelect.value;
 
     const allDeviazioni = state.allData
@@ -465,7 +464,7 @@ export function buildCandlestickChart(data) {
     });
 }
 
-export function updateAllHighlights() {
+function updateAllHighlights() {
     const scatterChart = state.chartInstances.potenzialeCosto;
     let hasHighlightedPoint = false;
     if (scatterChart) {

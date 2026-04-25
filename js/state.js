@@ -1,4 +1,4 @@
-export const state = {
+const state = {
     allData: [],
     modelToCompanyMap: new Map(),
     chartInstances: {},
@@ -6,6 +6,7 @@ export const state = {
     highlightIntervalId: null,
     highlightPulseState: false,
     filtersChangeBound: false,
+    images: {}, // To store preloaded company logos
     
     // DOM Elements
     dom: {

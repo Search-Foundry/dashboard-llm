@@ -1,5 +1,5 @@
 // --- Colors for companies ---
-export const companyColorMap = {
+const companyColorMap = {
     'OpenAI': '#3498db',           // Bright blue
     'Anthropic': '#e67e22',        // Orange
     'Mistral AI': '#27ae60',       // Emerald green
@@ -16,7 +16,7 @@ export const companyColorMap = {
 };
 
 // --- Symbols for companies ---
-export const companySymbolMap = {
+const companySymbolMap = {
     'OpenAI': 'circle',            // Circle
     'Anthropic': 'cross',          // Cross
     'Mistral AI': 'circle',        // Circle
@@ -32,6 +32,14 @@ export const companySymbolMap = {
     'Other': 'triangle'           // Triangle
 };
 
-export const ACCURACY_THRESHOLD = 90;
-export const POTENZIALE_THRESHOLD = 29250;
-export const POTENZIALE_THRESHOLD_LABEL = POTENZIALE_THRESHOLD.toLocaleString('en-US');
+const companyLogoMap = {
+    'OpenAI': 'screenshots/openai_logo.svg',
+    'Google': 'screenshots/google_logo.svg',
+    'Anthropic': 'screenshots/claude_logo.svg',
+    'Mistral AI': 'screenshots/mistral_logo.png',
+    'DeepSeek': 'screenshots/deepseek_logo.png'
+};
+
+const ACCURACY_THRESHOLD = 90;
+const POTENZIALE_THRESHOLD = 29250;
+const POTENZIALE_THRESHOLD_LABEL = POTENZIALE_THRESHOLD.toLocaleString('en-US');

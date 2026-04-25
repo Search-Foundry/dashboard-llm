@@ -1,9 +1,4 @@
-import { state } from './state.js';
-import { companyColorMap, companySymbolMap } from './config.js';
-import { getCompany, groupBy, createSymbolCanvas } from './utils.js';
-import { buildCharts, updateAllHighlights } from './charts.js';
-
-export function setupTabs() {
+function setupTabs() {
     state.dom.tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             state.dom.tabs.forEach(t => t.classList.remove('active'));
@@ -22,7 +17,7 @@ export function setupTabs() {
     });
 }
 
-export function buildFilters() {
+function buildFilters() {
     state.dom.filtersContainer.innerHTML = '';
     const byCompany = groupBy(state.allData, item => getCompany(item));
     const companyNames = Object.keys(byCompany).sort((a,b) => a.localeCompare(b));
@@ -119,21 +114,37 @@ export function buildFilters() {
     });
 }
 
-export function buildCustomLegend(companies) {
+function buildCustomLegend(companies) {
     state.dom.scatterLegendContainer.innerHTML = '';
     const sortedCompanies = Array.from(companies).sort();
     sortedCompanies.forEach(company => {
         const color = companyColorMap[company] || companyColorMap['Other'];
+        const logo = state.images[company];
         const symbol = companySymbolMap[company] || companySymbolMap['Other'];
         const li = document.createElement('li');
         li.dataset.company = company;
         
-        const symbolCanvas = createSymbolCanvas(symbol, color, 12);
-        symbolCanvas.style.marginRight = '5px';
-        symbolCanvas.style.verticalAlign = 'middle';
+        if (logo) {
+            // Since it's a canvas, we create a new small one and draw the stored one into it
+            // or just use a small style on a copy
+            const iconCanvas = document.createElement('canvas');
+            iconCanvas.width = 16;
+            iconCanvas.height = 16;
+            iconCanvas.style.width = '12px'; // Visual size in legend
+            iconCanvas.style.height = '12px';
+            iconCanvas.style.marginRight = '5px';
+            iconCanvas.style.verticalAlign = 'middle';
+            const ictx = iconCanvas.getContext('2d');
+            ictx.drawImage(logo, 0, 0, 16, 16);
+            li.appendChild(iconCanvas);
+        } else {
+            const symbolCanvas = createSymbolCanvas(symbol, color, 12);
+            symbolCanvas.style.marginRight = '5px';
+            symbolCanvas.style.verticalAlign = 'middle';
+            li.appendChild(symbolCanvas);
+        }
         
         const textNode = document.createTextNode(' ' + company);
-        li.appendChild(symbolCanvas);
         li.appendChild(textNode);
         
         li.addEventListener('click', () => {
@@ -149,7 +160,7 @@ export function buildCustomLegend(companies) {
     });
 }
 
-export function toggleCompanyHighlight(company, button) {
+function toggleCompanyHighlight(company, button) {
     if (state.highlightedCompanies.has(company)) {
         state.highlightedCompanies.delete(company);
     } else {
@@ -160,20 +171,20 @@ export function toggleCompanyHighlight(company, button) {
     ensureHighlightTimer();
 }
 
-export function updateHighlightButtonState(button, company) {
+function updateHighlightButtonState(button, company) {
     const isActive = state.highlightedCompanies.has(company);
     button.classList.toggle('active', isActive);
     button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 }
 
-export function refreshHighlightButtons() {
+function refreshHighlightButtons() {
     document.querySelectorAll('.highlight-toggle').forEach(button => {
         const company = button.dataset.company;
         updateHighlightButtonState(button, company);
     });
 }
 
-export function resetHighlights() {
+function resetHighlights() {
     state.highlightedCompanies.clear();
     stopHighlightTimer();
     refreshHighlightButtons();
@@ -181,7 +192,7 @@ export function resetHighlights() {
     updateAllHighlights();
 }
 
-export function ensureHighlightTimer() {
+function ensureHighlightTimer() {
     const hasHighlightedPoints = updateAllHighlights();
     if (state.highlightedCompanies.size === 0 || !hasHighlightedPoints) {
         stopHighlightTimer();
@@ -195,7 +206,7 @@ export function ensureHighlightTimer() {
     }
 }
 
-export function stopHighlightTimer({ resetPulse = true } = {}) {
+function stopHighlightTimer({ resetPulse = true } = {}) {
     if (state.highlightIntervalId) {
         clearInterval(state.highlightIntervalId);
         state.highlightIntervalId = null;
@@ -205,7 +216,7 @@ export function stopHighlightTimer({ resetPulse = true } = {}) {
     }
 }
 
-export function refreshLegendItems() {
+function refreshLegendItems() {
     document.querySelectorAll('#scatterLegend li').forEach(li => {
         const company = li.dataset.company;
         if (company) {
@@ -214,7 +225,7 @@ export function refreshLegendItems() {
     });
 }
 
-export function updateLegendItemState(legendItem, company) {
+function updateLegendItemState(legendItem, company) {
     const isActive = state.highlightedCompanies.has(company);
     legendItem.classList.toggle('active', isActive);
 }
