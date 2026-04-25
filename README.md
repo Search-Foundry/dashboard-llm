@@ -44,8 +44,29 @@ https://search-foundry.github.io/dashboard-llm/
 3) The page shows three charts with filters for company/model:
 
    - Matching (True/False) — stacked horizontal bars
-   - Potential vs Cost — scatter with legend by company
+   - Potential vs Cost — scatter with official logos for top vendors
    - Average Similarity — sorted horizontal bars
+   - Normalized Variation (Std Dev) — centered floating bars
+
+## Interactive Features
+
+- **Quick Filter:** Click on a point (or logo) in the "Potential vs Cost" chart to instantly disable that model and update all views.
+- **Company Highlighting:** Click "Highlight" next to a company name or click a company in the legend to make all its models pulse across all charts.
+- **Official Logos:** Top companies (OpenAI, Google, Anthropic, Mistral, DeepSeek) are represented by their official logos for better visual recognition.
+- **Dynamic Sizing:** Charts automatically adjust their height based on the number of selected models to ensure all labels are readable.
+
+## Project Structure
+
+The project has been refactored into a modular structure for better maintainability:
+
+- `js/config.js`: Configuration constants, colors, and logo mappings.
+- `js/state.js`: Global state management and DOM references.
+- `js/utils.js`: Helper functions for colors, grouping, and canvas drawing.
+- `js/ui.js`: UI logic (filters, tabs, highlighting).
+- `js/charts.js`: Chart.js logic, plugins, and chart building.
+- `js/app.js`: Main entry point and data loading.
+
+The dashboard remains fully compatible with direct file opening (`file://`) as it uses standard script loading instead of ES modules to avoid CORS restrictions.
 
 ## Updating the data
 

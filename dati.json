@@ -216,7 +216,8 @@
     "percent_true": 85.54,
     "similarita_media": 94.88,
     "deviazione_std": 13.77,
-    "potenziale": 30835
+    "potenziale": 30835,
+    "disabled": 1
   },
   {
     "modello": "GPT 4.1-mini",

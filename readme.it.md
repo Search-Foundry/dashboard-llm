@@ -46,8 +46,29 @@ https://search-foundry.github.io/dashboard-llm/
 3) La pagina mostra tre grafici con filtri per azienda/modello:
 
    - Matching (True/False) — barre orizzontali impilate
-   - Potenziale vs Costo — scatter con legenda per azienda
+   - Potenziale vs Costo — scatter con loghi ufficiali per i principali vendor
    - Similarità media — barre orizzontali ordinate
+   - Variazione Normalizzata (Std Dev) — barre flottanti centrate
+
+## Funzionalità Interattive
+
+- **Filtro Rapido:** Clicca su un punto (o logo) nel grafico "Potenziale vs Costo" per disabilitare istantaneamente quel modello e aggiornare tutte le viste.
+- **Highlight Aziendale:** Clicca su "Highlight" accanto al nome di un'azienda o clicca su un'azienda nella legenda per far pulsare tutti i suoi modelli in tutti i grafici.
+- **Loghi Ufficiali:** Le principali aziende (OpenAI, Google, Anthropic, Mistral, DeepSeek) sono rappresentate dai loro loghi ufficiali per un riconoscimento visivo immediato.
+- **Dimensionamento Dinamico:** I grafici regolano automaticamente la loro altezza in base al numero di modelli selezionati per garantire che tutte le etichette siano leggibili.
+
+## Struttura del Progetto
+
+Il progetto è stato rifattorizzato in una struttura modulare per una migliore manutenibilità:
+
+- `js/config.js`: Costanti di configurazione, colori e mappatura dei loghi.
+- `js/state.js`: Gestione dello stato globale e riferimenti al DOM.
+- `js/utils.js`: Funzioni di utilità per colori, raggruppamento e disegno su canvas.
+- `js/ui.js`: Logica dell'interfaccia utente (filtri, tab, highlight).
+- `js/charts.js`: Logica di Chart.js, plugin e costruzione dei grafici.
+- `js/app.js`: Punto di ingresso principale e caricamento dei dati.
+
+La dashboard rimane pienamente compatibile con l'apertura diretta del file (`file://`) poiché utilizza il caricamento standard degli script invece dei moduli ES6 per evitare le restrizioni CORS.
 
 ## Aggiornare i dati
 
