@@ -622,5 +622,17 @@
     "similarita_media": 91.85,
     "deviazione_std": 18.67,
     "potenziale": 29850
+  },
+  {
+    "modello": "GEMINI 3.5 FLASH",
+    "azienda": "Google",
+    "costo_euro": 0.71,
+    "true": 249,
+    "false": 60,
+    "total_query": 309,
+    "percent_true": 80.58,
+    "similarita_media": 96.36,
+    "deviazione_std": 10.23,
+    "potenziale": 29775
   }
 ]
