@@ -4,6 +4,8 @@
 
 ---
 
+> **📝 Note — 19 May 2026:** During the last test with Gemini 3.5 Flash, I started noticing a severe slowdown of the control model (GPT-4 Mini). To accelerate the process I switched to GPT-5 Mini, but it has a problem: reasoning cannot be easily disabled. I'll probably need to modify the code to disable it parametrically. It's strange that GPT-4 Mini's speed dropped to less than 10 tokens per second anyway.
+
 Interactive dashboard (HTML + JS) to visualize `dati.json` with Chart.js.
 
 The analysis comes from the "Clusterizza e misura" project (`https://github.com/Search-Foundry/aicategorizer`).
