@@ -576,7 +576,7 @@
     "potenziale": 30420
   },
   {
-    "modello": "GEMINI 4 26B",
+    "modello": "GEMMA 4 26B",
     "azienda": "Google",
     "costo_euro": 0.01,
     "true": 238,
