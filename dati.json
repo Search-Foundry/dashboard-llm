@@ -588,7 +588,7 @@
     "potenziale": 28300
   },
   {
-    "modello": "GEMINI 4 31B",
+    "modello": "GEMMA 4 31B",
     "azienda": "Google",
     "costo_euro": 0.02,
     "true": 269,
