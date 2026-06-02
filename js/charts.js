@@ -70,6 +70,50 @@ function getSelectedModels() {
     return Array.from(document.querySelectorAll('input.model-checkbox:checked')).map(cb => cb.value);
 }
 
+// Inline plugin: draws True/False values at the end of each bar segment
+const barValueLabelsPlugin = {
+    id: 'barValueLabels',
+    afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textBaseline = 'middle';
+
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            if (!meta.visible) return;
+
+            meta.data.forEach((bar, index) => {
+                const value = dataset.data[index];
+                if (value === null || value === undefined) return;
+
+                const barWidth = Math.abs(bar.x - bar.base);
+                const label = String(value);
+                const textWidth = ctx.measureText(label).width;
+                const padding = 4;
+
+                // Position label at the right edge of the bar segment
+                let x = bar.x + padding;
+                let textAlign = 'left';
+
+                // If label would overflow the chart area, draw inside the bar
+                if (x + textWidth > chart.chartArea.right) {
+                    x = bar.x - padding;
+                    textAlign = 'right';
+                }
+
+                // For stacked bars: if this is dataset 0 (True), also check
+                // if there's room between the two segments
+                ctx.fillStyle = '#333';
+                ctx.textAlign = textAlign;
+                ctx.fillText(label, x, bar.y);
+            });
+        });
+
+        ctx.restore();
+    }
+};
+
 function buildMatchingChart(data) {
     const sortedData = [...data].sort((a, b) => b.true - a.true);
     const labels = sortedData.map(item => item.modello);
@@ -97,7 +141,22 @@ function buildMatchingChart(data) {
             indexAxis: 'y',
             plugins: {
                 title: { display: false },
-                tooltip: { mode: 'index', intersect: false }
+                tooltip: {
+                    mode: 'nearest',
+                    intersect: true,
+                    position: 'nearest',
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.dataset.label || '';
+                            const value = context.parsed.x;
+                            const total = context.chart.data.datasets.reduce(
+                                (sum, ds) => sum + (ds.data[context.dataIndex] || 0), 0
+                            );
+                            const pct = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                            return `${label}: ${value} (${pct}%)`;
+                        }
+                    }
+                }
             },
             scales: {
                 x: {
@@ -131,7 +190,8 @@ function buildMatchingChart(data) {
                 }
             },
             animation: { duration: 300 }
-        }
+        },
+        plugins: [barValueLabelsPlugin]
     });
 }
 
