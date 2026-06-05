@@ -636,6 +636,18 @@
     "potenziale": 24515
   },
   {
+    "modello": "QWEN 3.7 PLUS",
+    "azienda": "Alibaba",
+    "costo_euro": 0.44,
+    "true": 108,
+    "false": 217,
+    "total_query": 325,
+    "percent_true": 33.23,
+    "similarita_media": 83.24,
+    "deviazione_std": 17.48,
+    "potenziale": 27052
+  },
+  {
     "modello": "GEMINI 3.5 FLASH",
     "azienda": "Google",
     "costo_euro": 0.71,
