@@ -624,6 +624,18 @@
     "potenziale": 29850
   },
   {
+    "modello": "MINIMAX M3",
+    "azienda": "MiniMax",
+    "costo_euro": 0.09,
+    "true": 113,
+    "false": 212,
+    "total_query": 325,
+    "percent_true": 34.77,
+    "similarita_media": 75.43,
+    "deviazione_std": 30.02,
+    "potenziale": 24515
+  },
+  {
     "modello": "GEMINI 3.5 FLASH",
     "azienda": "Google",
     "costo_euro": 0.71,
